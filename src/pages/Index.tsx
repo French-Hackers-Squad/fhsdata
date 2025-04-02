@@ -263,7 +263,7 @@ const Index = () => {
   return (
     <RetroLayout>
       <div className="relative min-h-screen bg-black/90 overflow-hidden">
-        <MatrixBackground density={85} />
+        <MatrixBackground density={200} />
         <div className="relative z-10 w-full">
           <div className="w-full max-w-[1920px] mx-auto px-6">
             <div className="pt-10 pb-6 text-center flex flex-col items-center">

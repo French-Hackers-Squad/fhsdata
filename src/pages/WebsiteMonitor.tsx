@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import RetroLayout from "@/components/RetroLayout";
 import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from "@/components/ui/table";
-import { Terminal, LogIn, Plus, Shield, Target, Timer, Search, ArrowUpDown, Trash2, Edit2, Globe } from "lucide-react";
+import { Terminal, LogIn, Plus, Shield, Target, Timer, Search, ArrowUpDown, Trash2, Edit2, Globe, User } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
 import { Input } from "@/components/ui/input";
@@ -30,6 +30,10 @@ interface Website {
   ecrie: boolean;
   user_name: string;
   avatar_url?: string;
+  profiles?: {
+    username: string;
+    avatar_url: string | null;
+  };
 }
 
 const WebsiteMonitor = () => {
@@ -133,8 +137,8 @@ const WebsiteMonitor = () => {
     notes: data.notes || '',
     priority: (data.priority as WebsitePriority) || 'Moyenne',
     ecrie: data.ecrie || false,
-    user_name: data.profiles?.[0]?.username || 'Anonyme',
-    avatar_url: data.profiles?.[0]?.avatar_url || null
+    user_name: data.profiles?.username || 'Anonyme',
+    avatar_url: data.profiles?.avatar_url || null
   });
 
   const fetchWebsites = async () => {
@@ -152,7 +156,7 @@ const WebsiteMonitor = () => {
           notes,
           priority,
           ecrie,
-          profiles (
+          profiles:added_by (
             username,
             avatar_url
           )
@@ -170,7 +174,7 @@ const WebsiteMonitor = () => {
         return;
       }
 
-      const formattedWebsites = data.map(site => ({
+      const formattedWebsites = data.map((site: any) => ({
         id: site.id,
         url: site.url,
         status: site.status || 'A attaquer',
@@ -179,8 +183,8 @@ const WebsiteMonitor = () => {
         notes: site.notes || '',
         priority: site.priority || 'Moyenne',
         ecrie: site.ecrie || false,
-        user_name: site.profiles?.[0]?.username || 'Anonyme',
-        avatar_url: site.profiles?.[0]?.avatar_url || null
+        user_name: site.profiles?.username || 'Anonyme',
+        avatar_url: site.profiles?.avatar_url || null
       }));
 
       setWebsites(formattedWebsites);
@@ -539,7 +543,20 @@ const WebsiteMonitor = () => {
                         {new Date(website.date_added).toLocaleDateString()}
                       </TableCell>
                       <TableCell className="text-france-white/70">
-                        {website.user_name}
+                        <div className="flex items-center gap-2">
+                          {website.avatar_url ? (
+                            <img 
+                              src={website.avatar_url} 
+                              alt={website.user_name}
+                              className="w-6 h-6 rounded-full object-cover border border-france-blue/30"
+                            />
+                          ) : (
+                            <div className="w-6 h-6 rounded-full bg-france-blue/20 flex items-center justify-center">
+                              <User size={14} className="text-france-blue" />
+                            </div>
+                          )}
+                          <span>{website.user_name}</span>
+                        </div>
                       </TableCell>
                       <TableCell>
                         <div className="flex gap-2">

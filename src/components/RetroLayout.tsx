@@ -45,7 +45,7 @@ const RetroLayout: React.FC<RetroLayoutProps> = ({ children }) => {
   return (
     <div className="min-h-screen flex flex-col bg-black/90 overflow-hidden relative">
       {/* Matrix Animation Background */}
-      <MatrixBackground density={70} />
+      <MatrixBackground density={200} />
       
       {/* Header */}
       <header className="relative z-10 france-card">

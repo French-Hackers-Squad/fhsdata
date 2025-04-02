@@ -110,12 +110,12 @@
   }
 
   .matrix-bg {
-    @apply fixed top-0 left-0 w-full h-full z-0 overflow-hidden opacity-25 pointer-events-none;
+    @apply fixed top-0 left-0 w-full h-full z-0 overflow-hidden opacity-40 pointer-events-none;
   }
 
   .matrix-char {
-    @apply absolute text-terminal-green text-opacity-80 font-code text-xs sm:text-sm md:text-base;
-    animation: matrix-fall 5s linear infinite;
+    @apply absolute font-code text-xs sm:text-sm md:text-base;
+    animation: matrix-fall 2s linear infinite;
   }
 
   .typing-animation {
@@ -265,7 +265,7 @@
     }
     100% {
       transform: translateY(100vh);
-      opacity: 0.7;
+      opacity: 0.9;
     }
   }
 
