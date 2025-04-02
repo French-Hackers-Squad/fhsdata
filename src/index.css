@@ -1,0 +1,405 @@
+@import url('https://fonts.googleapis.com/css2?family=Source+Code+Pro:wght@400;700&family=VT323&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 0 0% 0%;
+    --foreground: 0 0% 100%;
+
+    --card: 0 0% 0%;
+    --card-foreground: 0 0% 100%;
+
+    --popover: 0 0% 0%;
+    --popover-foreground: 0 0% 100%;
+
+    --primary: 215 100% 32%; /* Bleu français */
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 0 0% 100%; /* Blanc */
+    --secondary-foreground: 215 100% 32%;
+
+    --muted: 0 0% 0%;
+    --muted-foreground: 0 0% 100%;
+
+    --accent: 0 84% 60%; /* Rouge français */
+    --accent-foreground: 0 0% 100%;
+
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 215 100% 32%;
+    --input: 215 100% 32%;
+    --ring: 215 100% 32%;
+
+    --radius: 0.5rem;
+
+    --sidebar-background: 0 0% 98%;
+    --sidebar-foreground: 240 5.3% 26.1%;
+    --sidebar-primary: 240 5.9% 10%;
+    --sidebar-primary-foreground: 0 0% 98%;
+    --sidebar-accent: 240 4.8% 95.9%;
+    --sidebar-accent-foreground: 240 5.9% 10%;
+    --sidebar-border: 220 13% 91%;
+    --sidebar-ring: 217.2 91.2% 59.8%;
+  }
+
+  .dark {
+    --background: 222.2 84% 4.9%;
+    --foreground: 0 0% 100%;
+
+    --card: 222.2 84% 4.9%;
+    --card-foreground: 0 0% 100%;
+
+    --popover: 222.2 84% 4.9%;
+    --popover-foreground: 0 0% 100%;
+
+    --primary: 215 100% 32%; /* Bleu français */
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 0 0% 100%; /* Blanc */
+    --secondary-foreground: 215 100% 32%;
+
+    --muted: 222.2 84% 4.9%;
+    --muted-foreground: 0 0% 100%;
+
+    --accent: 0 84% 60%; /* Rouge français */
+    --accent-foreground: 0 0% 100%;
+
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 215 100% 32%;
+    --input: 215 100% 32%;
+    --ring: 215 100% 32%;
+    --sidebar-background: 240 5.9% 10%;
+    --sidebar-foreground: 240 4.8% 95.9%;
+    --sidebar-primary: 224.3 76.3% 48%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 240 3.7% 15.9%;
+    --sidebar-accent-foreground: 240 4.8% 95.9%;
+    --sidebar-border: 240 3.7% 15.9%;
+    --sidebar-ring: 217.2 91.2% 59.8%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-terminal-black text-terminal-green font-terminal;
+  }
+
+  .terminal-text {
+    @apply font-terminal text-terminal-green;
+  }
+
+  .glow-text {
+    text-shadow: 0 0 5px #00ff00, 0 0 10px #00ff00;
+    animation: pulse-glow 3s infinite alternate;
+  }
+
+  .terminal-container {
+    @apply border border-terminal-green bg-terminal-black p-4 rounded;
+    box-shadow: 0 0 10px #00ff00, inset 0 0 5px rgba(0, 255, 0, 0.3);
+    animation: border-pulse 4s infinite alternate;
+  }
+
+  .matrix-bg {
+    @apply fixed top-0 left-0 w-full h-full z-0 overflow-hidden opacity-25 pointer-events-none;
+  }
+
+  .matrix-char {
+    @apply absolute text-terminal-green text-opacity-80 font-code text-xs sm:text-sm md:text-base;
+    animation: matrix-fall 5s linear infinite;
+  }
+
+  .typing-animation {
+    overflow: hidden;
+    border-right: 2px solid transparent;
+    white-space: nowrap;
+    margin: 0 auto;
+    letter-spacing: 0.1em;
+    animation: 
+      typing 2.5s steps(40, end),
+      blink-caret 0.75s step-end infinite;
+  }
+
+  @keyframes typing {
+    from { width: 0 }
+    to { width: 100% }
+  }
+
+  @keyframes blink-caret {
+    from, to { border-color: transparent }
+    50% { border-color: #00ff00; }
+  }
+
+  @keyframes pulse-glow {
+    0% { text-shadow: 0 0 5px #00ff00, 0 0 10px #00ff00; }
+    100% { text-shadow: 0 0 10px #00ff00, 0 0 20px #00ff00, 0 0 30px #00ff00; }
+  }
+
+  @keyframes border-pulse {
+    0% { box-shadow: 0 0 10px #00ff00, inset 0 0 5px rgba(0, 255, 0, 0.3); }
+    100% { box-shadow: 0 0 20px #00ff00, inset 0 0 10px rgba(0, 255, 0, 0.5); }
+  }
+
+  .france-blue-shadow {
+    text-shadow: 0 0 5px #0055A4, 0 0 10px #0055A4;
+    animation: pulse-blue 3s infinite alternate;
+  }
+  
+  .france-white-shadow {
+    text-shadow: 0 0 5px #FFFFFF, 0 0 10px #FFFFFF;
+    animation: pulse-white 4s infinite alternate;
+  }
+  
+  .france-red-shadow {
+    text-shadow: 0 0 5px #EF4135, 0 0 10px #EF4135;
+    animation: pulse-red 5s infinite alternate;
+  }
+
+  @keyframes pulse-blue {
+    0% { text-shadow: 0 0 5px #0055A4, 0 0 10px #0055A4; }
+    100% { text-shadow: 0 0 10px #0055A4, 0 0 15px #0055A4, 0 0 20px #0055A4; }
+  }
+
+  @keyframes pulse-white {
+    0% { text-shadow: 0 0 5px #FFFFFF, 0 0 10px #FFFFFF; }
+    100% { text-shadow: 0 0 10px #FFFFFF, 0 0 15px #FFFFFF, 0 0 20px #FFFFFF; }
+  }
+
+  @keyframes pulse-red {
+    0% { text-shadow: 0 0 5px #EF4135, 0 0 10px #EF4135; }
+    100% { text-shadow: 0 0 10px #EF4135, 0 0 15px #EF4135, 0 0 20px #EF4135; }
+  }
+
+  .loader-matrix {
+    position: relative;
+    width: 60px;
+    height: 60px;
+    margin: 0 auto;
+  }
+
+  .loader-matrix:before,
+  .loader-matrix:after {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    border: 2px solid transparent;
+    border-top-color: #00ff00;
+  }
+
+  .loader-matrix:before {
+    z-index: 1;
+    animation: spin 1.5s infinite; /* Plus rapide: 1.5s au lieu de 2s */
+  }
+
+  .loader-matrix:after {
+    border: 2px solid rgba(0, 255, 0, 0.3);
+  }
+
+  @keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+  }
+}
+
+@layer components {
+  .retro-button {
+    @apply bg-terminal-gray text-terminal-green border border-terminal-green px-4 py-2 rounded font-terminal transition-all duration-300;
+    box-shadow: 0 0 5px #00ff00;
+  }
+  
+  .retro-button:hover {
+    @apply bg-terminal-darkGreen text-white;
+    box-shadow: 0 0 15px #00ff00;
+    transform: translateY(-2px);
+  }
+  
+  .retro-button:active {
+    transform: translateY(1px);
+    box-shadow: 0 0 5px #00ff00;
+  }
+  
+  .france-stripe::before {
+    content: "";
+    @apply absolute top-0 left-0 h-full w-1/3 bg-france-blue z-10;
+  }
+  
+  .france-stripe::after {
+    content: "";
+    @apply absolute top-0 right-0 h-full w-1/3 bg-france-red z-10;
+  }
+
+  /* Add smooth hover effect for table rows */
+  .table-row-hover:hover {
+    @apply bg-terminal-darkGray bg-opacity-20 transition-all duration-200;
+  }
+
+  /* Add pulse effect for status indicators */
+  .status-pulse {
+    animation: status-pulse 2s infinite;
+  }
+
+  @keyframes status-pulse {
+    0% { opacity: 1; }
+    50% { opacity: 0.6; }
+    100% { opacity: 1; }
+  }
+
+  /* Matrix rain animation - faster version */
+  @keyframes matrix-fall {
+    0% {
+      transform: translateY(-100vh);
+      opacity: 1;
+    }
+    100% {
+      transform: translateY(100vh);
+      opacity: 0.7;
+    }
+  }
+
+  /* Updated animation for matrix fall */
+  .animate-matrix-fall {
+    animation: matrix-fall 5s linear infinite; /* 5s au lieu de 8s */
+  }
+  
+  /* New hover effect for links */
+  .link-hover {
+    position: relative;
+    display: inline-block;
+  }
+  
+  .link-hover::after {
+    content: '';
+    position: absolute;
+    width: 100%;
+    height: 2px;
+    bottom: -2px;
+    left: 0;
+    background-color: #00ff00;
+    transform: scaleX(0);
+    transform-origin: bottom right;
+    transition: transform 0.3s ease-out;
+  }
+  
+  .link-hover:hover::after {
+    transform: scaleX(1);
+    transform-origin: bottom left;
+  }
+  
+  /* Glitch effect for text */
+  .glitch {
+    position: relative;
+  }
+  
+  .glitch::before,
+  .glitch::after {
+    content: attr(data-text);
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+  }
+  
+  .glitch::before {
+    left: 2px;
+    text-shadow: -2px 0 #00ffff;
+    clip: rect(44px, 450px, 56px, 0);
+    animation: glitch-anim 5s infinite linear alternate-reverse;
+  }
+  
+  .glitch::after {
+    left: -2px;
+    text-shadow: -2px 0 #ff00ff;
+    clip: rect(24px, 450px, 36px, 0);
+    animation: glitch-anim2 4s infinite linear alternate-reverse;
+  }
+  
+  @keyframes glitch-anim {
+    0% { clip: rect(21px, 9999px, 74px, 0); }
+    20% { clip: rect(3px, 9999px, 22px, 0); }
+    40% { clip: rect(71px, 9999px, 51px, 0); }
+    60% { clip: rect(42px, 9999px, 2px, 0); }
+    80% { clip: rect(28px, 9999px, 72px, 0); }
+    100% { clip: rect(65px, 9999px, 39px, 0); }
+  }
+  
+  @keyframes glitch-anim2 {
+    0% { clip: rect(96px, 9999px, 11px, 0); }
+    20% { clip: rect(23px, 9999px, 44px, 0); }
+    40% { clip: rect(15px, 9999px, 38px, 0); }
+    60% { clip: rect(89px, 9999px, 33px, 0); }
+    80% { clip: rect(76px, 9999px, 5px, 0); }
+    100% { clip: rect(82px, 9999px, 64px, 0); }
+  }
+
+  .france-button {
+    @apply bg-black text-france-white border px-4 py-2 rounded transition-all duration-300;
+    border-image: linear-gradient(45deg, #0055A4, #FFFFFF, #EF4135) 1;
+    box-shadow: 0 0 5px rgba(0, 85, 164, 0.2);
+  }
+  
+  .france-button:hover {
+    @apply text-white;
+    background: linear-gradient(45deg, #0055A4, #FFFFFF, #EF4135);
+    box-shadow: 0 0 15px rgba(0, 85, 164, 0.4);
+    transform: translateY(-2px);
+  }
+  
+  .france-button:active {
+    transform: translateY(1px);
+    box-shadow: 0 0 5px rgba(0, 85, 164, 0.2);
+  }
+
+  .france-card {
+    @apply bg-black/90 backdrop-blur-sm p-6 rounded-lg;
+    border: 1px solid transparent;
+    background: linear-gradient(black, black) padding-box,
+                linear-gradient(45deg, #0055A4, #FFFFFF, #EF4135) border-box;
+    box-shadow: 0 0 20px rgba(0, 85, 164, 0.1);
+  }
+
+  .france-card:hover {
+    box-shadow: 0 0 30px rgba(0, 85, 164, 0.2);
+    transform: translateY(-2px);
+    transition: all 0.3s ease;
+  }
+
+  .france-border {
+    border: 1px solid transparent;
+    background: linear-gradient(black, black) padding-box,
+                linear-gradient(45deg, #0055A4, #FFFFFF, #EF4135) border-box;
+  }
+
+  .france-text {
+    background: linear-gradient(45deg, #0055A4, #FFFFFF, #EF4135);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    animation: gradient 5s ease infinite;
+    text-shadow: 0 0 10px rgba(255, 255, 255, 0.2);
+  }
+
+  .france-gradient {
+    background: linear-gradient(45deg, #0055A4, #FFFFFF, #EF4135);
+    background-size: 200% 200%;
+    animation: gradient 5s ease infinite;
+  }
+
+  @keyframes gradient {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+  }
+}
