@@ -545,6 +545,14 @@ const Index = () => {
               <p className="text-france-white/70">SÉCURITÉ • DISCRÉTION • EXCELLENCE</p>
               <div className="h-px w-10 bg-france-blue/30"></div>
             </div>
+
+            <div className="retro-text">
+              Texte avec style rétro
+            </div>
+
+            <div className="retro-text-crt">
+              Texte avec effet CRT rétro
+            </div>
           </div>
         </div>
       </div>

@@ -40,3 +40,30 @@
 .read-the-docs {
   color: #888;
 }
+
+.retro-text {
+  font-family: 'VT323', 'Courier New', monospace;
+  color: #33ff33;
+  text-shadow: 0 0 5px #33ff33;
+  letter-spacing: 1px;
+}
+
+.retro-text-crt {
+  font-family: 'VT323', 'Courier New', monospace;
+  color: #33ff33;
+  text-shadow: 0 0 5px #33ff33;
+  letter-spacing: 1px;
+  animation: textScanlines 1.5s linear infinite;
+}
+
+@keyframes textScanlines {
+  0% {
+    opacity: 0.9;
+  }
+  50% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0.9;
+  }
+}
