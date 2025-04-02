@@ -1,6 +1,10 @@
+import { Session } from "@supabase/supabase-js";
+
 interface TerminalOutput {
   type: 'input' | 'output';
   content: string;
+  timestamp?: number;
+  id?: string;
 }
 
 interface Website {
@@ -26,14 +30,14 @@ export const getSuggestions = (input: string): string[] => {
 
 export const handleTerminalCommand = (
   command: string,
-  session: any,
+  session: Session | null,
   websites: Website[],
   terminalHistory: string[],
   setTerminalOutput: React.Dispatch<React.SetStateAction<TerminalOutput[]>>,
   setTerminalHistory: React.Dispatch<React.SetStateAction<string[]>>,
   setHistoryIndex: React.Dispatch<React.SetStateAction<number>>
 ) => {
-  const [cmd, ...args] = command.split(' ');
+  const [cmd] = command.split(' ');
   let response = '';
 
   setTerminalHistory(prev => [...prev, command]);

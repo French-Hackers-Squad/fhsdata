@@ -1,17 +1,20 @@
 import React, { useState, useEffect } from "react";
 import RetroLayout from "@/components/RetroLayout";
 import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from "@/components/ui/table";
-import { Dialog, DialogTrigger, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
-import { Alert, AlertDescription } from "@/components/ui/alert";
-import { useToast } from "@/hooks/use-toast";
-import { z } from "zod";
-import { Terminal, AlertTriangle, Check, X, LogIn, Plus, Shield, Target, Timer, CheckCircle2, Search, Filter, ArrowUpDown, Trash2, Edit2, Eye, Globe } from "lucide-react";
+import { Terminal, LogIn, Plus, Shield, Target, Timer, Search, ArrowUpDown, Trash2, Edit2, Globe } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { 
+  Dialog,
+  DialogContent, 
+  DialogHeader,
+  DialogTitle,
+  DialogDescription 
+} from "@/components/ui/dialog";
 
 type WebsiteStatus = "A attaquer" | "En cours" | "Attaqué";
 type WebsitePriority = "Basse" | "Moyenne" | "Haute";
@@ -23,14 +26,13 @@ interface Website {
   date_added: string;
   added_by?: string;
   notes?: string;
-  priority?: WebsitePriority;
+  priority: WebsitePriority;
   ecrie: boolean;
+  user_name: string;
+  avatar_url?: string;
 }
 
-const urlSchema = z.string().url().startsWith("http");
-
 const WebsiteMonitor = () => {
-  const { toast } = useToast();
   const navigate = useNavigate();
   const [websites, setWebsites] = useState<Website[]>([]);
   const [filteredWebsites, setFilteredWebsites] = useState<Website[]>([]);
@@ -107,15 +109,15 @@ const WebsiteMonitor = () => {
       result = result.filter(website => website.priority === priorityFilter);
     }
     
-    // Tri
+    // Tri sécurisé
     result.sort((a, b) => {
-      const aValue = a[sortField];
-      const bValue = b[sortField];
+      const aValue = a[sortField] ?? '';
+      const bValue = b[sortField] ?? '';
       
       if (sortDirection === "asc") {
-        return aValue > bValue ? 1 : -1;
+        return String(aValue) > String(bValue) ? 1 : -1;
       } else {
-        return aValue < bValue ? 1 : -1;
+        return String(aValue) < String(bValue) ? 1 : -1;
       }
     });
     
@@ -125,32 +127,69 @@ const WebsiteMonitor = () => {
   const convertToWebsite = (data: any): Website => ({
     id: data.id,
     url: data.url,
-    status: data.status as WebsiteStatus,
-    date_added: data.date_added,
+    status: data.status as WebsiteStatus || 'A attaquer',
+    date_added: data.date_added || new Date().toISOString(),
     added_by: data.added_by,
-    notes: data.notes,
-    priority: data.priority as WebsitePriority,
-    ecrie: data.ecrie || false
+    notes: data.notes || '',
+    priority: (data.priority as WebsitePriority) || 'Moyenne',
+    ecrie: data.ecrie || false,
+    user_name: data.profiles?.[0]?.username || 'Anonyme',
+    avatar_url: data.profiles?.[0]?.avatar_url || null
   });
 
   const fetchWebsites = async () => {
     setIsLoading(true);
     try {
+      // Requête simple
       const { data, error } = await supabase
         .from('websites')
-        .select('*')
+        .select(`
+          id,
+          url,
+          status,
+          date_added,
+          added_by,
+          notes,
+          priority,
+          ecrie,
+          profiles (
+            username,
+            avatar_url
+          )
+        `)
         .order('date_added', { ascending: false });
-      
-      if (error) throw error;
-      
-      setWebsites((data || []).map(convertToWebsite));
-    } catch (error) {
-        console.error("Erreur lors de la récupération des sites:", error);
-        toast({
-          title: "Erreur",
-        description: "Impossible de charger les sites",
-        variant: "destructive"
-      });
+
+      if (error) {
+        console.error("Erreur Supabase:", error);
+        throw error;
+      }
+
+      if (!data) {
+        setWebsites([]);
+        setFilteredWebsites([]);
+        return;
+      }
+
+      const formattedWebsites = data.map(site => ({
+        id: site.id,
+        url: site.url,
+        status: site.status || 'A attaquer',
+        date_added: site.date_added || new Date().toISOString(),
+        added_by: site.added_by,
+        notes: site.notes || '',
+        priority: site.priority || 'Moyenne',
+        ecrie: site.ecrie || false,
+        user_name: site.profiles?.[0]?.username || 'Anonyme',
+        avatar_url: site.profiles?.[0]?.avatar_url || null
+      }));
+
+      setWebsites(formattedWebsites);
+      setFilteredWebsites(formattedWebsites);
+
+    } catch (error: any) {
+      console.error("Erreur:", error);
+      setWebsites([]);
+      setFilteredWebsites([]);
     } finally {
       setIsLoading(false);
     }
@@ -161,19 +200,19 @@ const WebsiteMonitor = () => {
     
     try {
       const fullUrl = `${protocol}${urlWithoutProtocol}`;
-      urlSchema.parse(fullUrl);
       
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error("Utilisateur non connecté");
+
       const websiteData = {
         url: fullUrl,
         status: newWebsite.status,
         priority: newWebsite.priority,
         notes: newWebsite.notes || "",
-        added_by: session.user.id,
-        date_added: new Date().toISOString()
+        added_by: user.id,
+        created_by: user.id
       };
 
-      console.log("Données à insérer:", websiteData);
-      
       const { data, error } = await supabase
         .from('websites')
         .insert([websiteData])
@@ -197,19 +236,9 @@ const WebsiteMonitor = () => {
         });
         setUrlWithoutProtocol("");
         setProtocol("https://");
-        
-        toast({
-          title: "Succès",
-          description: "Site ajouté avec succès"
-        });
       }
     } catch (error) {
       console.error("Erreur détaillée:", error);
-      toast({
-        title: "Erreur",
-        description: error instanceof Error ? error.message : "Impossible d'ajouter le site",
-        variant: "destructive"
-      });
     }
   };
 
@@ -229,18 +258,8 @@ const WebsiteMonitor = () => {
       
       setWebsites(prev => prev.map(w => w.id === website.id ? website : w));
       setShowEditModal(false);
-      
-        toast({
-        title: "Succès",
-        description: "Site mis à jour avec succès"
-      });
     } catch (error) {
       console.error("Erreur lors de la mise à jour du site:", error);
-      toast({
-        title: "Erreur",
-        description: "Impossible de mettre à jour le site",
-        variant: "destructive"
-      });
     }
   };
 
@@ -256,18 +275,8 @@ const WebsiteMonitor = () => {
       if (error) throw error;
       
       setWebsites(prev => prev.filter(w => w.id !== id));
-      
-        toast({
-        title: "Succès",
-        description: "Site supprimé avec succès"
-      });
     } catch (error) {
       console.error("Erreur lors de la suppression du site:", error);
-      toast({
-        title: "Erreur",
-        description: "Impossible de supprimer le site",
-        variant: "destructive"
-      });
     }
   };
 
@@ -412,7 +421,7 @@ const WebsiteMonitor = () => {
                 <p className="text-xs text-france-white/70 mt-1">Attaques réussies</p>
               </CardContent>
             </Card>
-                </div>
+          </div>
 
           {/* Filtres et Recherche améliorés avec animations */}
           <div className="bg-black/50 p-4 rounded-lg border border-france-blue/30 backdrop-blur-sm shadow-lg hover:shadow-france-blue/20 transition-all duration-300">
@@ -482,29 +491,30 @@ const WebsiteMonitor = () => {
                     <div className="flex items-center text-france-white/90 group">
                       Date d'ajout
                       <ArrowUpDown className="ml-2 h-4 w-4 transition-transform duration-300 group-hover:scale-110" />
-                </div>
+                    </div>
                   </TableHead>
-                        <TableHead className="text-france-white/90">Actions</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
+                  <TableHead className="text-france-white/90">Ajouté par</TableHead>
+                  <TableHead className="text-france-white/90">Actions</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
                 {isLoading ? (
                   <TableRow>
-                    <TableCell colSpan={5} className="text-center py-8">
+                    <TableCell colSpan={6} className="text-center py-8">
                       <div className="flex flex-col items-center gap-2">
                         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-france-blue"></div>
                         <p className="text-france-white/70">Chargement des sites...</p>
                       </div>
-                          </TableCell>
+                    </TableCell>
                   </TableRow>
                 ) : filteredWebsites.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={5} className="text-center py-8">
+                    <TableCell colSpan={6} className="text-center py-8">
                       <div className="flex flex-col items-center gap-2">
-                        <Eye className="h-8 w-8 text-france-white/50 animate-pulse" />
+                        <Globe className="h-8 w-8 text-france-white/50 animate-pulse" />
                         <p className="text-france-white/70">Aucun site trouvé</p>
-                            </div>
-                          </TableCell>
+                      </div>
+                    </TableCell>
                   </TableRow>
                 ) : (
                   filteredWebsites.map((website) => (
@@ -527,9 +537,12 @@ const WebsiteMonitor = () => {
                       <TableCell>{getPriorityBadge(website.priority)}</TableCell>
                       <TableCell className="text-france-white/70">
                         {new Date(website.date_added).toLocaleDateString()}
-                          </TableCell>
-                          <TableCell>
-                            <div className="flex gap-2">
+                      </TableCell>
+                      <TableCell className="text-france-white/70">
+                        {website.user_name}
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex gap-2">
                           <Button
                             variant="ghost"
                             size="icon"
@@ -549,13 +562,13 @@ const WebsiteMonitor = () => {
                           >
                             <Trash2 className="h-4 w-4 text-red-500" />
                           </Button>
-                            </div>
-                          </TableCell>
-                        </TableRow>
+                        </div>
+                      </TableCell>
+                    </TableRow>
                   ))
                 )}
-                    </TableBody>
-                  </Table>
+              </TableBody>
+            </Table>
           </div>
         </div>
 
@@ -603,7 +616,7 @@ const WebsiteMonitor = () => {
                   <option value="En cours">En Cours</option>
                   <option value="Attaqué">Attaqué</option>
                 </select>
-            </div>
+              </div>
               <div>
                 <label className="block text-sm font-medium mb-1 text-france-white/90">Priorité</label>
                 <select
@@ -615,7 +628,7 @@ const WebsiteMonitor = () => {
                   <option value="Moyenne">Moyenne</option>
                   <option value="Haute">Haute</option>
                 </select>
-          </div>
+              </div>
               <div>
                 <label className="block text-sm font-medium mb-1 text-france-white/90">Notes</label>
                 <Input
@@ -739,7 +752,7 @@ const WebsiteMonitor = () => {
                   </Button>
                 </div>
               </form>
-        )}
+            )}
           </DialogContent>
         </Dialog>
       </div>

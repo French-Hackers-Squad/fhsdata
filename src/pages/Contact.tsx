@@ -1,4 +1,3 @@
-import React from "react";
 import RetroLayout from "@/components/RetroLayout";
 import { Mail, MessageSquare, Globe, Shield, Lock, AlertTriangle, Users, Terminal } from "lucide-react";
 

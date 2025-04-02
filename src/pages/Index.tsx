@@ -1,17 +1,41 @@
 import React, { useState, useRef, useEffect } from "react";
 import { Link } from "react-router-dom";
 import MatrixBackground from "@/components/MatrixBackground";
-import { Terminal, ShieldAlert, MonitorUp, Lock, ChevronRight, AlertTriangle, Check, X, CheckCircle2, Shield, Award, Users, Globe, Target, Heart, Code, ExternalLink, Home, Mail, Info, MessageSquare } from "lucide-react";
+import { 
+  Terminal, 
+  Shield, 
+  MonitorUp, 
+  Lock, 
+  ChevronRight, 
+  Globe, 
+  Target, 
+  ShieldAlert,
+  Search,
+  ArrowUpDown,
+  User,
+  Calendar,
+  Info
+} from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import RetroLayout from "@/components/RetroLayout";
 import { handleTerminalCommand, getSuggestions } from "@/data/terminalCommands";
+import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { toast } from "@/components/ui/use-toast";
 
 interface Website {
   id: string;
   url: string;
-  status: "secure" | "compromised" | "investigating" | "A attaquer" | "En cours" | "Attaqué";
+  status: "A attaquer" | "En cours" | "Attaqué";
   date_added: string;
   added_by: string;
+  notes?: string;
+  priority: "Basse" | "Moyenne" | "Haute";
+  user_name: string;
+  avatar_url?: string;
+  ecrie: boolean;
 }
 
 interface TerminalOutput {
@@ -26,9 +50,12 @@ const Index = () => {
   const [historyIndex, setHistoryIndex] = useState<number>(-1);
   const [session, setSession] = useState<any>(null);
   const [websites, setWebsites] = useState<Website[]>([]);
+  const [filteredWebsites, setFilteredWebsites] = useState<Website[]>([]);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [statusFilter, setStatusFilter] = useState<string>('');
+  const [priorityFilter, setPriorityFilter] = useState<string>('');
+  const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('desc');
   const [isLoading, setIsLoading] = useState<boolean>(true);
-  const [showAddModal, setShowAddModal] = useState(false);
-  const [newWebsiteUrl, setNewWebsiteUrl] = useState("");
   const logo = "/img/logo.png";
   const terminalRef = useRef<HTMLDivElement>(null);
   const [suggestions, setSuggestions] = useState<string[]>([]);
@@ -46,38 +73,72 @@ const Index = () => {
     scrollToBottom();
   }, [terminalOutput]);
 
+  const fetchWebsites = async () => {
+    setIsLoading(true);
+    try {
+      console.log("Début de la récupération des sites...");
+      
+      // Requête avec jointure sur les profils pour obtenir le nom et l'avatar
+      const { data, error } = await supabase
+        .from('websites')
+        .select(`
+          *,
+          profiles:added_by (
+            username,
+            avatar_url
+          )
+        `)
+        .order('date_added', { ascending: false });
+      
+      console.log("Réponse brute:", { data, error });
+      
+      if (error) {
+        console.error("Erreur Supabase détaillée:", error);
+        throw error;
+      }
+      
+      if (!data) {
+        console.log("Aucune donnée reçue");
+        setWebsites([]);
+        setFilteredWebsites([]);
+        return;
+      }
+
+      // Traitement des données avec les informations de profil
+      const websitesWithUsernames = data.map((website: any) => ({
+        ...website,
+        user_name: website.profiles?.username || 'Anonyme',
+        avatar_url: website.profiles?.avatar_url || null,
+        date_added: website.date_added || new Date().toISOString(),
+        status: website.status || 'A attaquer',
+        priority: website.priority || 'Moyenne'
+      }));
+      
+      console.log("Sites traités:", websitesWithUsernames);
+      setWebsites(websitesWithUsernames);
+      setFilteredWebsites(websitesWithUsernames);
+    } catch (error) {
+      console.error("Erreur complète:", error);
+      toast({
+        title: "Erreur",
+        description: "Impossible de charger les sites. Veuillez réessayer plus tard.",
+        variant: "destructive"
+      });
+      setWebsites([]);
+      setFilteredWebsites([]);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   useEffect(() => {
     const checkSession = async () => {
       const { data } = await supabase.auth.getSession();
       setSession(data.session);
     };
     
-    const fetchWebsites = async () => {
-      try {
-        const { data, error } = await supabase
-          .from('websites')
-          .select('*')
-          .order('date_added', { ascending: false })
-          .limit(5);
-        
-        if (error) {
-          console.error("Error fetching websites:", error);
-        } else {
-          const typedWebsites: Website[] = (data || []).map(site => ({
-            ...site,
-            status: (site.status as "A attaquer" | "En cours" | "Attaqué") || "Attaqué"
-          }));
-          setWebsites(typedWebsites);
-        }
-      } catch (err) {
-        console.error("Exception fetching websites:", err);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-    
-    checkSession();
     fetchWebsites();
+    checkSession();
     
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (_, session) => {
@@ -89,6 +150,41 @@ const Index = () => {
       subscription.unsubscribe();
     };
   }, []);
+
+  useEffect(() => {
+    let result = websites;
+    
+    // Filtre par recherche
+    if (searchTerm) {
+      result = result.filter(website => 
+        website.url.toLowerCase().includes(searchTerm.toLowerCase())
+      );
+    }
+    
+    // Filtre par statut
+    if (statusFilter) {
+      result = result.filter(website => website.status === statusFilter);
+    }
+    
+    // Filtre par priorité
+    if (priorityFilter) {
+      result = result.filter(website => website.priority === priorityFilter);
+    }
+    
+    // Tri
+    result.sort((a, b) => {
+      const aValue = a.date_added ?? '';
+      const bValue = b.date_added ?? '';
+      
+      if (sortDirection === "asc") {
+        return String(aValue) > String(bValue) ? 1 : -1;
+      } else {
+        return String(aValue) < String(bValue) ? 1 : -1;
+      }
+    });
+    
+    setFilteredWebsites(result);
+  }, [websites, searchTerm, statusFilter, priorityFilter, sortDirection]);
 
   // Fonction pour obtenir les suggestions d'autocomplétion
   const getLocalSuggestions = (input: string) => {
@@ -150,6 +246,20 @@ const Index = () => {
     );
   };
 
+  const getStatusColor = (status: Website['status']) => {
+    switch (status) {
+      case 'Attaqué':
+        return 'bg-france-red/20 text-france-red border-france-red/30';
+      case 'En cours':
+        return 'bg-france-white/20 text-france-white border-france-white/30';
+      case 'A attaquer':
+        return 'bg-france-blue/20 text-france-blue border-france-blue/30';
+      default:
+        return 'bg-france-white/20 text-france-white border-france-white/30';
+    }
+  };
+
+
   return (
     <RetroLayout>
       <div className="relative min-h-screen bg-black/90 overflow-hidden">
@@ -200,75 +310,6 @@ const Index = () => {
                   Action internationale coordonnée avec les forces de l'ordre et les organisations spécialisées.
                 </p>
               </div>
-            </div>
-
-            <div className="france-card p-6 mb-12">
-              <div className="flex items-center justify-between mb-4">
-                <div className="flex items-center gap-3">
-                  <Terminal className="text-france-blue" size={24} />
-                  <h2 className="text-2xl font-bold france-text">Terminal FHS</h2>
-                </div>
-                <div className="flex gap-2">
-                  <div className="w-3 h-3 rounded-full bg-france-red"></div>
-                  <div className="w-3 h-3 rounded-full bg-france-white"></div>
-                  <div className="w-3 h-3 rounded-full bg-france-blue"></div>
-                </div>
-              </div>
-              <div className="bg-black/50 border border-france-blue/30 rounded-lg p-4">
-                <div 
-                  ref={terminalRef}
-                  className="h-64 overflow-y-auto mb-4 font-mono text-sm [&::-webkit-scrollbar]:w-2 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:bg-gradient-to-b [&::-webkit-scrollbar-thumb]:from-france-blue [&::-webkit-scrollbar-thumb]:via-france-white [&::-webkit-scrollbar-thumb]:to-france-red [&::-webkit-scrollbar-thumb]:rounded-full hover:[&::-webkit-scrollbar-thumb]:opacity-100 [&::-webkit-scrollbar-thumb]:opacity-70"
-                >
-                  {terminalOutput.map((output, index) => (
-                    <div key={index} className={`mb-1 ${output.type === 'input' ? 'text-france-blue' : 'text-france-white/90'}`}>
-                      {output.content.split('\n').map((line, i) => (
-                        <div key={i} className="whitespace-pre-wrap">{line}</div>
-                      ))}
-                    </div>
-                  ))}
-                </div>
-                <form onSubmit={(e) => {
-                  e.preventDefault();
-                  handleCommand(terminalInput);
-                  setTerminalInput('');
-                  setShowSuggestions(false);
-                }} className="flex gap-2 relative">
-                  <span className="text-france-blue">root@fhs:~#</span>
-                  <div className="flex-1 relative">
-                    <input
-                      type="text"
-                      value={terminalInput}
-                      onChange={handleInputChange}
-                      onKeyDown={(e) => {
-                        handleKeyDown(e);
-                        handleTab(e);
-                      }}
-                      className="w-full bg-transparent border-none outline-none text-france-white/90"
-                      placeholder="Tapez une commande..."
-                      autoFocus
-                    />
-                    {showSuggestions && suggestions.length > 0 && (
-                      <div className="absolute bottom-full left-0 w-full bg-black/90 border border-france-blue/30 rounded-lg p-2 mb-1">
-                        {suggestions.map((suggestion, index) => (
-                          <div
-                            key={index}
-                            className="px-2 py-1 hover:bg-france-blue/20 cursor-pointer"
-                            onClick={() => {
-                              setTerminalInput(suggestion);
-                              setShowSuggestions(false);
-                            }}
-                          >
-                            {suggestion}
-                          </div>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                </form>
-              </div>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
               <div className="france-card p-6">
                 <div className="flex items-center gap-2 mb-4">
                   <MonitorUp className="text-france-blue" size={24} />
@@ -310,6 +351,195 @@ const Index = () => {
               </div>
             </div>
 
+            <div className="france-card p-6 mb-12">
+              <div className="flex items-center justify-between mb-6">
+                <div className="flex items-center gap-3">
+                  <MonitorUp className="text-france-blue" size={24} />
+                  <h2 className="text-2xl font-bold france-text">Sites Surveillés</h2>
+                </div>
+                <div className="flex gap-2">
+                  <div className="w-3 h-3 rounded-full bg-france-red"></div>
+                  <div className="w-3 h-3 rounded-full bg-france-white"></div>
+                  <div className="w-3 h-3 rounded-full bg-france-blue"></div>
+                </div>
+              </div>
+
+              {!session && (
+                <div className="mb-4 p-4 bg-france-blue/10 border border-france-blue/30 rounded-lg">
+                  <div className="flex items-center gap-2 text-france-blue">
+                    <Info size={20} />
+                    <p>Connectez-vous pour ajouter de nouveaux sites à surveiller</p>
+                  </div>
+                </div>
+              )}
+
+              <div className="space-y-4">
+                <div className="flex flex-col md:flex-row gap-4">
+                  <div className="flex-1 relative">
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-france-blue/50" size={16} />
+                    <Input
+                      type="text"
+                      placeholder="Rechercher un site..."
+                      value={searchTerm}
+                      onChange={(e) => setSearchTerm(e.target.value)}
+                      className="pl-10 bg-black/50 border-france-blue/30 text-france-white"
+                    />
+                  </div>
+                  <div className="flex gap-2">
+                    <select
+                      value={statusFilter}
+                      onChange={(e) => setStatusFilter(e.target.value)}
+                      className="bg-black/50 border border-france-blue/30 text-france-white rounded-md px-3 py-2"
+                    >
+                      <option value="">Tous les statuts</option>
+                      <option value="A attaquer">A attaquer</option>
+                      <option value="En cours">En cours</option>
+                      <option value="Attaqué">Attaqué</option>
+                    </select>
+                    <select
+                      value={priorityFilter}
+                      onChange={(e) => setPriorityFilter(e.target.value)}
+                      className="bg-black/50 border border-france-blue/30 text-france-white rounded-md px-3 py-2"
+                    >
+                      <option value="">Toutes les priorités</option>
+                      <option value="Haute">Haute</option>
+                      <option value="Moyenne">Moyenne</option>
+                      <option value="Basse">Basse</option>
+                    </select>
+                    <Button
+                      onClick={() => setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc')}
+                      className="france-button"
+                    >
+                      <ArrowUpDown size={16} className="mr-2" />
+                      {sortDirection === 'asc' ? '↑' : '↓'}
+                    </Button>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {isLoading ? (
+                    <div className="col-span-full text-center py-8">
+                      <div className="loader-matrix"></div>
+                    </div>
+                  ) : filteredWebsites.length === 0 ? (
+                    <div className="col-span-full text-center py-8 text-france-white/70">
+                      Aucun site trouvé
+                    </div>
+                  ) : (
+                    filteredWebsites.map((website) => (
+                      <Card key={website.id} className="bg-black/50 border-france-blue/30">
+                        <CardHeader className="p-4">
+                          <div className="flex items-start justify-between">
+                            <CardTitle className="text-france-white text-lg">
+                              {website.url}
+                            </CardTitle>
+                            <Badge className={getStatusColor(website.status)}>
+                              {website.status}
+                            </Badge>
+                          </div>
+                        </CardHeader>
+                        <CardContent className="p-4">
+                          <div className="flex items-center justify-between text-sm text-france-white/70">
+                            <div className="flex items-center gap-2">
+                              {website.avatar_url ? (
+                                <img 
+                                  src={website.avatar_url} 
+                                  alt={website.user_name}
+                                  className="w-6 h-6 rounded-full object-cover border border-france-blue/30"
+                                />
+                              ) : (
+                                <User size={14} />
+                              )}
+                              <span>{website.user_name}</span>
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <Calendar size={14} />
+                              <span>{formatDate(website.date_added)}</span>
+                            </div>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    ))
+                  )}
+                </div>
+              </div>
+            </div>
+
+            <div className="france-card p-6 mb-12">
+              <div className="flex items-center justify-between mb-6">
+                <div className="flex items-center gap-3">
+                  <Terminal className="text-france-blue" size={24} />
+                  <h2 className="text-2xl font-bold france-text">Terminal</h2>
+                </div>
+              </div>
+
+              <div className="relative">
+                <div 
+                  ref={terminalRef}
+                  className="bg-black/80 border border-france-blue/30 rounded-lg p-4 h-[300px] overflow-y-auto font-terminal text-sm"
+                >
+                  {terminalOutput.map((output, index) => (
+                    <div key={index} className="mb-2">
+                      {output.type === 'input' ? (
+                        <div className="text-france-blue">
+                          <span className="mr-2">$</span>
+                          {output.content}
+                        </div>
+                      ) : (
+                        <div className="text-france-white/90 whitespace-pre-wrap">
+                          {output.content}
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                  {showSuggestions && suggestions.length > 0 && (
+                    <div className="absolute bottom-full left-0 right-0 bg-black/90 border border-france-blue/30 rounded-lg p-2 mb-2">
+                      {suggestions.map((suggestion, index) => (
+                        <div
+                          key={index}
+                          className="text-france-white/90 hover:text-france-blue cursor-pointer py-1 px-2"
+                          onClick={() => {
+                            setTerminalInput(suggestion);
+                            setShowSuggestions(false);
+                          }}
+                        >
+                          {suggestion}
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+                <div className="mt-4 flex gap-2">
+                  <Input
+                    type="text"
+                    value={terminalInput}
+                    onChange={handleInputChange}
+                    onKeyDown={(e) => {
+                      handleKeyDown(e);
+                      handleTab(e);
+                    }}
+                    onKeyPress={(e) => {
+                      if (e.key === 'Enter') {
+                        handleCommand(terminalInput);
+                        setTerminalInput('');
+                      }
+                    }}
+                    placeholder="Entrez une commande..."
+                    className="flex-1 bg-black/50 border-france-blue/30 text-france-white font-terminal"
+                  />
+                  <Button
+                    onClick={() => {
+                      handleCommand(terminalInput);
+                      setTerminalInput('');
+                    }}
+                    className="france-button"
+                  >
+                    Exécuter
+                  </Button>
+                </div>
+              </div>
+            </div>
+
             <div className="flex items-center justify-center gap-2 mb-12">
               <div className="h-px w-10 bg-france-blue/30"></div>
               <p className="text-france-white/70">SÉCURITÉ • DISCRÉTION • EXCELLENCE</p>
@@ -322,29 +552,5 @@ const Index = () => {
   );
 };
 
-const ServiceCard = ({ icon, title, description, linkUrl, linkText }: { 
-  icon: React.ReactNode, 
-  title: string, 
-  description: string,
-  linkUrl?: string,
-  linkText?: string
-}) => (
-  <div className="france-card p-4">
-    <div className="flex items-center gap-3 mb-3">
-      {icon}
-      <h3 className="font-bold text-france-white">{title}</h3>
-    </div>
-    <p className="text-sm text-france-white/90 mb-4">{description}</p>
-    {linkUrl && linkText && (
-      <Link 
-        to={linkUrl} 
-        className="france-button text-france-white/90 hover:text-black inline-flex items-center gap-2"
-      >
-        {linkText}
-        <ChevronRight size={16} />
-      </Link>
-    )}
-  </div>
-);
 
-export default Index;
+export default Index; 

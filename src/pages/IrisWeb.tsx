@@ -1,4 +1,3 @@
-import React from "react";
 import RetroLayout from "@/components/RetroLayout";
 import { Code, Globe, Shield, Terminal, Palette, Server, Smartphone, Zap, GitBranch, Gitlab } from "lucide-react";
 

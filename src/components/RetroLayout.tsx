@@ -1,7 +1,8 @@
-import React from 'react';
-import { Shield, Home, Info, Mail, Code, MessageSquare, Globe } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Home, Info, Mail, Code, MessageSquare, Globe, LogIn, LogOut, User } from 'lucide-react';
 import MatrixBackground from './MatrixBackground';
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { supabase } from '@/integrations/supabase/client';
 
 interface RetroLayoutProps {
   children: React.ReactNode;
@@ -9,7 +10,37 @@ interface RetroLayoutProps {
 
 const RetroLayout: React.FC<RetroLayoutProps> = ({ children }) => {
   const location = useLocation();
+  const navigate = useNavigate();
   const logo = "/img/logo.png";
+  const [session, setSession] = useState<any>(null);
+
+  useEffect(() => {
+    const checkSession = async () => {
+      const { data } = await supabase.auth.getSession();
+      setSession(data.session);
+    };
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      (_, session) => {
+        setSession(session);
+      }
+    );
+
+    checkSession();
+
+    return () => {
+      subscription.unsubscribe();
+    };
+  }, []);
+
+  const handleAuth = async () => {
+    if (session) {
+      await supabase.auth.signOut();
+      navigate('/');
+    } else {
+      navigate('/login');
+    }
+  };
 
   return (
     <div className="min-h-screen flex flex-col bg-black/90 overflow-hidden relative">
@@ -43,10 +74,29 @@ const RetroLayout: React.FC<RetroLayoutProps> = ({ children }) => {
             <NavLink href="/contact" active={location.pathname === "/contact"} icon={<Mail size={16} />}>Contact</NavLink>
             <NavLink href="/irisweb" active={location.pathname === "/irisweb"} icon={<Globe size={16} />}>IrisWeb</NavLink>
             <NavLink href="https://discord.gg/fhs" active={false} icon={<MessageSquare size={16} />} external>Discord</NavLink>
+            {session && (
+              <NavLink href="/profile" active={location.pathname === "/profile"} icon={<User size={16} />}>Profil</NavLink>
+            )}
+            <button
+              onClick={handleAuth}
+              className="france-button text-sm transition-all duration-300 flex items-center text-france-white/90 hover:text-black"
+            >
+              {session ? (
+                <>
+                  <LogOut size={16} className="mr-2" />
+                  Déconnexion
+                </>
+              ) : (
+                <>
+                  <LogIn size={16} className="mr-2" />
+                  Connexion
+                </>
+              )}
+            </button>
           </nav>
           
           <div className="md:hidden">
-            <MobileMenu />
+            <MobileMenu session={session} onAuth={handleAuth} />
           </div>
         </div>
       </header>
@@ -77,7 +127,7 @@ const RetroLayout: React.FC<RetroLayoutProps> = ({ children }) => {
 };
 
 // Mobile Menu Component
-const MobileMenu = () => {
+const MobileMenu = ({ session, onAuth }: { session: any, onAuth: () => void }) => {
   const [isOpen, setIsOpen] = React.useState(false);
   const location = useLocation();
 
@@ -141,6 +191,34 @@ const MobileMenu = () => {
           >
             <MessageSquare size={16} className="inline mr-2" /> Discord
           </a>
+          {session && (
+            <Link 
+              to="/profile" 
+              className={`block px-4 py-2 text-sm ${location.pathname === '/profile' ? 'bg-france-blue text-white' : 'text-france-white'} hover:bg-france-blue hover:text-white`}
+              onClick={() => setIsOpen(false)}
+            >
+              <User size={16} className="inline mr-2" /> Profil
+            </Link>
+          )}
+          <button
+            onClick={() => {
+              onAuth();
+              setIsOpen(false);
+            }}
+            className="w-full text-left px-4 py-2 text-sm text-france-white hover:bg-france-blue hover:text-white"
+          >
+            {session ? (
+              <>
+                <LogOut size={16} className="inline mr-2" />
+                Déconnexion
+              </>
+            ) : (
+              <>
+                <LogIn size={16} className="inline mr-2" />
+                Connexion
+              </>
+            )}
+          </button>
         </div>
       )}
     </div>

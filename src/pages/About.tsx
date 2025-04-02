@@ -1,6 +1,5 @@
-import React from "react";
 import RetroLayout from "@/components/RetroLayout";
-import { Shield, Award, Users, Lock, Globe, Terminal, Target, Heart, Code, AlertTriangle } from "lucide-react";
+import { Shield, Users, Lock, Globe, Terminal, Target, Heart, Code, AlertTriangle } from "lucide-react";
 
 const About = () => {
   return (

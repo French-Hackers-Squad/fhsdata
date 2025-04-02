@@ -5,39 +5,37 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import Index from "./pages/Index";
-import WebsiteMonitor from "./pages/WebsiteMonitor";
-import About from "./pages/About";
-import Contact from "./pages/Contact";
-import NotFound from "./pages/NotFound";
-import IrisWeb from "./pages/IrisWeb";
+import Index from "@/pages/Index";
+import WebsiteMonitor from "@/pages/WebsiteMonitor";
+import About from "@/pages/About";
+import Contact from "@/pages/Contact";
+import NotFound from "@/pages/NotFound";
+import IrisWeb from "@/pages/IrisWeb";
+import Login from "@/pages/Login";
+import Profile from "@/pages/Profile";
+import { Session } from "@supabase/supabase-js";
 
 const queryClient = new QueryClient();
 
-const App = () => {
-  const [session, setSession] = useState<any>(null);
+const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
+  const [session, setSession] = useState<Session | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    // Check current session
     const checkSession = async () => {
-      const { data, error } = await supabase.auth.getSession();
-      if (!error) {
-        setSession(data.session);
-      }
+      const { data } = await supabase.auth.getSession();
+      setSession(data.session);
       setIsLoading(false);
     };
 
-    // Set up auth state listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (event, session) => {
+      (_, session) => {
         setSession(session);
       }
     );
 
     checkSession();
 
-    // Cleanup
     return () => {
       subscription.unsubscribe();
     };
@@ -51,6 +49,14 @@ const App = () => {
     );
   }
 
+  if (!session) {
+    return <Navigate to="/login" replace />;
+  }
+
+  return <>{children}</>;
+};
+
+const App = () => {
   return (
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
@@ -59,11 +65,26 @@ const App = () => {
         <BrowserRouter>
           <Routes>
             <Route path="/" element={<Index />} />
-            <Route path="/monitor" element={<WebsiteMonitor />} />
+            <Route path="/login" element={<Login />} />
+            <Route 
+              path="/monitor" 
+              element={
+                <ProtectedRoute>
+                  <WebsiteMonitor />
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="/profile" 
+              element={
+                <ProtectedRoute>
+                  <Profile />
+                </ProtectedRoute>
+              } 
+            />
             <Route path="/about" element={<About />} />
             <Route path="/contact" element={<Contact />} />
             <Route path="/irisweb" element={<IrisWeb />} />
-            {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>
