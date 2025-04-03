@@ -7,7 +7,7 @@ import { useToast } from '@/hooks/use-toast';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
-import { Loader2, User, Mail, Upload, X } from 'lucide-react';
+import { Loader2, User, Mail, Upload, X, UserPlus } from 'lucide-react';
 import RetroLayout from '@/components/RetroLayout';
 
 const profileSchema = z.object({
@@ -23,6 +23,7 @@ const Profile = () => {
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
+  const [hasProfile, setHasProfile] = useState(false);
   const { toast } = useToast();
 
   const form = useForm<ProfileFormValues>({
@@ -46,16 +47,28 @@ const Profile = () => {
           .eq('id', user.id)
           .single();
 
-        if (error) throw error;
+        if (error) {
+          if (error.code === 'PGRST116') {
+            setHasProfile(false);
+            form.reset({
+              email: user.email || '',
+              username: '',
+              avatar_url: '',
+            });
+          } else {
+            throw error;
+          }
+        } else {
+          setHasProfile(true);
+          form.reset({
+            username: profile.username || '',
+            email: user.email || '',
+            avatar_url: profile.avatar_url || '',
+          });
 
-        form.reset({
-          username: profile.username || '',
-          email: user.email || '',
-          avatar_url: profile.avatar_url || '',
-        });
-
-        if (profile.avatar_url) {
-          setAvatarPreview(profile.avatar_url);
+          if (profile.avatar_url) {
+            setAvatarPreview(profile.avatar_url);
+          }
         }
       } catch (error) {
         toast({
@@ -77,7 +90,6 @@ const Profile = () => {
       const file = event.target.files?.[0];
       if (!file) return;
 
-      // Vérifier le type de fichier
       if (!file.type.startsWith('image/')) {
         toast({
           title: 'Erreur',
@@ -87,7 +99,6 @@ const Profile = () => {
         return;
       }
 
-      // Vérifier la taille (max 5MB)
       if (file.size > 5 * 1024 * 1024) {
         toast({
           title: 'Erreur',
@@ -100,12 +111,10 @@ const Profile = () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('Utilisateur non trouvé');
 
-      // Créer un nom de fichier unique
       const fileExt = file.name.split('.').pop();
       const fileName = `${user.id}-${Math.random()}.${fileExt}`;
       const filePath = `avatars/${fileName}`;
 
-      // Upload l'image
       const { error: uploadError } = await supabase.storage
         .from('profiles')
         .upload(filePath, file);
@@ -115,12 +124,10 @@ const Profile = () => {
         throw new Error('Erreur lors de l\'upload de l\'image');
       }
 
-      // Récupérer l'URL publique
       const { data: { publicUrl } } = supabase.storage
         .from('profiles')
         .getPublicUrl(filePath);
 
-      // Mettre à jour le profil
       const { error: updateError } = await supabase
         .from('profiles')
         .update({
@@ -134,7 +141,6 @@ const Profile = () => {
         throw new Error('Erreur lors de la mise à jour du profil');
       }
 
-      // Mettre à jour le formulaire et la prévisualisation
       form.setValue('avatar_url', publicUrl);
       setAvatarPreview(publicUrl);
 
@@ -160,7 +166,6 @@ const Profile = () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('Utilisateur non trouvé');
 
-      // Supprimer l'image du storage
       if (avatarPreview) {
         const oldPath = avatarPreview.split('/').pop();
         if (oldPath) {
@@ -170,7 +175,6 @@ const Profile = () => {
         }
       }
 
-      // Mettre à jour le profil
       const { error: updateError } = await supabase
         .from('profiles')
         .update({
@@ -181,7 +185,6 @@ const Profile = () => {
 
       if (updateError) throw updateError;
 
-      // Mettre à jour le formulaire et la prévisualisation
       form.setValue('avatar_url', '');
       setAvatarPreview(null);
 
@@ -201,7 +204,46 @@ const Profile = () => {
     }
   };
 
+  const createProfile = async (data: ProfileFormValues) => {
+    try {
+      setSaving(true);
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error('Utilisateur non trouvé');
+
+      const { error } = await supabase
+        .from('profiles')
+        .insert({
+          id: user.id,
+          username: data.username,
+          avatar_url: avatarPreview,
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+        });
+
+      if (error) throw error;
+
+      setHasProfile(true);
+      toast({
+        title: 'Succès',
+        description: 'Profil créé avec succès',
+      });
+    } catch (error) {
+      toast({
+        title: 'Erreur',
+        description: 'Impossible de créer le profil',
+        variant: 'destructive',
+      });
+    } finally {
+      setSaving(false);
+    }
+  };
+
   const onSubmit = async (data: ProfileFormValues) => {
+    if (!hasProfile) {
+      await createProfile(data);
+      return;
+    }
+
     try {
       setSaving(true);
       const { data: { user } } = await supabase.auth.getUser();
@@ -246,102 +288,129 @@ const Profile = () => {
         <div className="max-w-4xl mx-auto space-y-8">
           <div className="france-card">
             <div className="text-center mb-8">
-              <div className="relative h-24 w-24 mx-auto mb-4">
-                <div className="h-full w-full rounded-full overflow-hidden border-2 border-france-blue glow-text">
-                  {avatarPreview ? (
-                    <img 
-                      src={avatarPreview} 
-                      alt="Avatar" 
-                      className="w-full h-full object-cover"
-                    />
+              <h1 className="text-3xl font-bold france-text mb-2">
+                {hasProfile ? 'Mon Profil' : 'Créer mon Profil'}
+              </h1>
+              <p className="text-france-white/90">
+                {hasProfile 
+                  ? 'Gérez vos informations personnelles'
+                  : 'Créez votre profil pour accéder à toutes les fonctionnalités'
+                }
+              </p>
+            </div>
+
+            <Form {...form}>
+              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+                <div className="flex justify-center mb-6">
+                  <div className="relative h-24 w-24">
+                    <div className="h-full w-full rounded-full overflow-hidden border-2 border-france-blue glow-text">
+                      {avatarPreview ? (
+                        <img
+                          src={avatarPreview}
+                          alt="Avatar"
+                          className="h-full w-full object-cover"
+                        />
+                      ) : (
+                        <div className="h-full w-full bg-black/50 flex items-center justify-center">
+                          <User className="h-12 w-12 text-france-blue/70" />
+                        </div>
+                      )}
+                    </div>
+                    <div className="absolute -bottom-2 -right-2 flex gap-2">
+                      <div className="relative">
+                        <input
+                          type="file"
+                          accept="image/*"
+                          onChange={handleAvatarUpload}
+                          className="hidden"
+                          id="avatar-upload"
+                          disabled={uploading}
+                        />
+                        <label
+                          htmlFor="avatar-upload"
+                          className="flex items-center justify-center h-8 w-8 bg-france-blue hover:bg-france-blue/90 text-white rounded-full cursor-pointer transition-colors duration-200"
+                        >
+                          {uploading ? (
+                            <Loader2 className="h-4 w-4 animate-spin" />
+                          ) : (
+                            <Upload className="h-4 w-4" />
+                          )}
+                        </label>
+                      </div>
+                      {avatarPreview && (
+                        <Button
+                          type="button"
+                          variant="destructive"
+                          size="icon"
+                          className="h-8 w-8 rounded-full"
+                          onClick={removeAvatar}
+                          disabled={uploading}
+                        >
+                          <X className="h-4 w-4" />
+                        </Button>
+                      )}
+                    </div>
+                  </div>
+                </div>
+
+                <div className="grid gap-6">
+                  <FormField
+                    control={form.control}
+                    name="username"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel className="text-france-white/90">Nom d'utilisateur</FormLabel>
+                        <FormControl>
+                          <Input {...field} className="bg-black/30 border-france-blue/30" />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
+                    name="email"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel className="text-france-white/90">Email</FormLabel>
+                        <FormControl>
+                          <Input {...field} disabled className="bg-black/30 border-france-blue/30" />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+
+                <Button
+                  type="submit"
+                  className="w-full bg-france-blue hover:bg-france-blue/90"
+                  disabled={saving}
+                >
+                  {saving ? (
+                    <div className="flex items-center gap-2">
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                      Enregistrement...
+                    </div>
                   ) : (
-                    <User className="w-full h-full p-6 text-france-blue" />
-                  )}
-                </div>
-                <div className="absolute bottom-0 right-0 flex gap-2">
-                  <label className="cursor-pointer p-1 bg-france-blue rounded-full hover:bg-france-blue/80 transition-colors">
-                    <Upload className="h-4 w-4 text-white" />
-                    <input
-                      type="file"
-                      className="hidden"
-                      accept="image/*"
-                      onChange={handleAvatarUpload}
-                      disabled={uploading}
-                    />
-                  </label>
-                  {avatarPreview && (
-                    <button
-                      onClick={removeAvatar}
-                      disabled={uploading}
-                      className="p-1 bg-france-red rounded-full hover:bg-france-red/80 transition-colors"
-                    >
-                      <X className="h-4 w-4 text-white" />
-                    </button>
-                  )}
-                </div>
-              </div>
-              <h1 className="text-4xl font-bold france-text mb-2">Profil</h1>
-              <p className="text-france-white/90 text-lg">Gérez vos informations personnelles</p>
-            </div>
-
-            <div className="space-y-6">
-              <Form {...form}>
-                <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div className="france-card p-4">
-                      <div className="flex items-center gap-2 mb-4">
-                        <User className="text-france-blue" size={20} />
-                        <h3 className="font-bold text-france-white">Informations</h3>
-                      </div>
-                      <FormField
-                        control={form.control}
-                        name="username"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel className="text-france-white">Nom d'utilisateur</FormLabel>
-                            <FormControl>
-                              <Input {...field} className="bg-black/50 border-france-blue/30 text-france-white placeholder:text-france-white/50" />
-                            </FormControl>
-                            <FormMessage className="text-france-red" />
-                          </FormItem>
-                        )}
-                      />
+                    <div className="flex items-center gap-2">
+                      {hasProfile ? (
+                        <>
+                          <User className="h-4 w-4" />
+                          Mettre à jour le profil
+                        </>
+                      ) : (
+                        <>
+                          <UserPlus className="h-4 w-4" />
+                          Créer mon profil
+                        </>
+                      )}
                     </div>
-
-                    <div className="france-card p-4">
-                      <div className="flex items-center gap-2 mb-4">
-                        <Mail className="text-france-white" size={20} />
-                        <h3 className="font-bold text-france-white">Contact</h3>
-                      </div>
-                      <FormField
-                        control={form.control}
-                        name="email"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel className="text-france-white">Email</FormLabel>
-                            <FormControl>
-                              <Input {...field} disabled className="bg-black/50 border-france-blue/30 text-france-white/70" />
-                            </FormControl>
-                            <FormMessage className="text-france-red" />
-                          </FormItem>
-                        )}
-                      />
-                    </div>
-                  </div>
-
-                  <div className="flex justify-end">
-                    <Button 
-                      type="submit" 
-                      disabled={saving} 
-                      className="france-button text-france-white/90 hover:text-black"
-                    >
-                      {saving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                      Enregistrer les modifications
-                    </Button>
-                  </div>
-                </form>
-              </Form>
-            </div>
+                  )}
+                </Button>
+              </form>
+            </Form>
           </div>
         </div>
       </div>

@@ -48,23 +48,17 @@ const RetroLayout: React.FC<RetroLayoutProps> = ({ children }) => {
       <MatrixBackground density={200} />
       
       {/* Header */}
-      <header className="relative z-10 france-card">
-        <div className="w-full max-w-[1920px] mx-auto flex justify-between items-center p-4">
-          <Link to="/" className="flex items-center space-x-4 group transition-all duration-300">
-            <div className="relative h-10 w-10 rounded-full border border-france-blue overflow-hidden">
-              <img src={logo} alt="Logo FHS" className="w-full h-full object-cover" />
+      <header className="relative z-20">
+        <div className="w-full max-w-[1920px] mx-auto px-4 md:px-6 py-4 flex items-center justify-between bg-black/75 border-b border-zinc-800">
+          <Link to="/" className="flex items-center space-x-2">
+            <div className="relative w-8 h-8 md:w-10 md:h-10 rounded-full overflow-hidden border border-zinc-800 bg-black/10 flex items-center justify-center">
+              <img 
+                src={logo} 
+                alt="FHS Logo" 
+                className="w-[150%] h-[150%] object-contain scale-150"
+              />
             </div>
-            <div className="font-terminal">
-              <h1 className="text-xl md:text-2xl font-bold">
-                <span className="text-france-blue">F</span>
-                <span className="text-france-white">H</span>
-                <span className="text-france-red">S</span>
-                <span className="text-france-white/90"> - French Hackers Squad</span>
-              </h1>
-              <div className="text-xs text-france-white/70">
-                <span className="typing-animation" style={{ animationDuration: '1.5s' }}>root@fhs:~# Collectif d'élite en sécurité_</span>
-              </div>
-            </div>
+            <span className="text-lg md:text-xl font-bold text-zinc-100">FHS</span>
           </Link>
           
           <nav className="hidden md:flex items-center space-x-4">
@@ -102,7 +96,7 @@ const RetroLayout: React.FC<RetroLayoutProps> = ({ children }) => {
       </header>
       
       {/* Main Content */}
-      <main className="relative z-10 w-full bg-black/90">
+      <main className="relative z-10 flex-1 overflow-x-hidden">
         {children}
       </main>
       
@@ -146,38 +140,38 @@ const MobileMenu = ({ session, onAuth }: { session: any, onAuth: () => void }) =
       </button>
 
       {isOpen && (
-        <div className="absolute right-0 mt-2 w-48 py-2 bg-black france-border rounded-md shadow-lg z-50">
+        <div className="fixed top-16 right-0 left-0 mt-0 py-2 bg-black/5 backdrop-blur-sm border border-zinc-800 shadow-lg z-50 mx-4 rounded-xl">
           <Link 
             to="/" 
-            className={`block px-4 py-2 text-sm ${location.pathname === '/' ? 'bg-france-blue text-white' : 'text-france-white'} hover:bg-france-blue hover:text-white`}
+            className={`block px-4 py-3 text-sm ${location.pathname === '/' ? 'bg-black/10 text-zinc-100' : 'text-zinc-400'} hover:bg-black/10 hover:text-zinc-100`}
             onClick={() => setIsOpen(false)}
           >
             <Home size={16} className="inline mr-2" /> Terminal
           </Link>
           <Link 
             to="/monitor" 
-            className={`block px-4 py-2 text-sm ${location.pathname === '/monitor' ? 'bg-france-blue text-white' : 'text-france-white'} hover:bg-france-blue hover:text-white`}
+            className={`block px-4 py-3 text-sm ${location.pathname === '/monitor' ? 'bg-black/10 text-zinc-100' : 'text-zinc-400'} hover:bg-black/10 hover:text-zinc-100`}
             onClick={() => setIsOpen(false)}
           >
             <Code size={16} className="inline mr-2" /> Monitoring
           </Link>
           <Link 
             to="/about" 
-            className={`block px-4 py-2 text-sm ${location.pathname === '/about' ? 'bg-france-blue text-white' : 'text-france-white'} hover:bg-france-blue hover:text-white`}
+            className={`block px-4 py-3 text-sm ${location.pathname === '/about' ? 'bg-black/10 text-zinc-100' : 'text-zinc-400'} hover:bg-black/10 hover:text-zinc-100`}
             onClick={() => setIsOpen(false)}
           >
             <Info size={16} className="inline mr-2" /> À Propos
           </Link>
           <Link 
             to="/contact" 
-            className={`block px-4 py-2 text-sm ${location.pathname === '/contact' ? 'bg-france-blue text-white' : 'text-france-white'} hover:bg-france-blue hover:text-white`}
+            className={`block px-4 py-3 text-sm ${location.pathname === '/contact' ? 'bg-black/10 text-zinc-100' : 'text-zinc-400'} hover:bg-black/10 hover:text-zinc-100`}
             onClick={() => setIsOpen(false)}
           >
             <Mail size={16} className="inline mr-2" /> Contact
           </Link>
           <Link 
             to="/irisweb" 
-            className={`block px-4 py-2 text-sm ${location.pathname === '/irisweb' ? 'bg-france-blue text-white' : 'text-france-white'} hover:bg-france-blue hover:text-white`}
+            className={`block px-4 py-3 text-sm ${location.pathname === '/irisweb' ? 'bg-black/10 text-zinc-100' : 'text-zinc-400'} hover:bg-black/10 hover:text-zinc-100`}
             onClick={() => setIsOpen(false)}
           >
             <Globe size={16} className="inline mr-2" /> IrisWeb
@@ -186,7 +180,7 @@ const MobileMenu = ({ session, onAuth }: { session: any, onAuth: () => void }) =
             href="https://discord.gg/fhs" 
             target="_blank" 
             rel="noopener noreferrer"
-            className="block px-4 py-2 text-sm text-france-white hover:bg-france-blue hover:text-white"
+            className="block px-4 py-3 text-sm text-france-white hover:bg-france-blue hover:text-white"
             onClick={() => setIsOpen(false)}
           >
             <MessageSquare size={16} className="inline mr-2" /> Discord
@@ -194,7 +188,7 @@ const MobileMenu = ({ session, onAuth }: { session: any, onAuth: () => void }) =
           {session && (
             <Link 
               to="/profile" 
-              className={`block px-4 py-2 text-sm ${location.pathname === '/profile' ? 'bg-france-blue text-white' : 'text-france-white'} hover:bg-france-blue hover:text-white`}
+              className={`block px-4 py-3 text-sm ${location.pathname === '/profile' ? 'bg-black/10 text-zinc-100' : 'text-zinc-400'} hover:bg-black/10 hover:text-zinc-100`}
               onClick={() => setIsOpen(false)}
             >
               <User size={16} className="inline mr-2" /> Profil
@@ -205,7 +199,7 @@ const MobileMenu = ({ session, onAuth }: { session: any, onAuth: () => void }) =
               onAuth();
               setIsOpen(false);
             }}
-            className="w-full text-left px-4 py-2 text-sm text-france-white hover:bg-france-blue hover:text-white"
+            className="w-full text-left px-4 py-3 text-sm text-france-white hover:bg-france-blue hover:text-white"
           >
             {session ? (
               <>
@@ -239,7 +233,7 @@ const NavLink: React.FC<{
         href={href} 
         target="_blank" 
         rel="noopener noreferrer"
-        className={`france-button text-sm transition-all duration-300 flex items-center text-france-white/90 hover:text-black ${active ? 'bg-france-blue text-white' : ''}`}
+        className={`inline-flex items-center px-4 py-2 text-sm rounded-lg transition-colors ${active ? 'bg-black/10 text-zinc-100' : 'text-zinc-400'} hover:bg-black/10 hover:text-zinc-100`}
       >
         {icon && <span className="mr-2">{icon}</span>}
         {children}
@@ -250,7 +244,7 @@ const NavLink: React.FC<{
   return (
     <Link 
       to={href} 
-      className={`france-button text-sm transition-all duration-300 flex items-center text-france-white/90 hover:text-black ${active ? 'bg-france-blue text-white' : ''}`}
+      className={`inline-flex items-center px-4 py-2 text-sm rounded-lg transition-colors ${active ? 'bg-black/10 text-zinc-100' : 'text-zinc-400'} hover:bg-black/10 hover:text-zinc-100`}
     >
       {icon && <span className="mr-2">{icon}</span>}
       {children}

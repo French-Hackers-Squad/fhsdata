@@ -15,16 +15,16 @@
     --popover: 0 0% 0%;
     --popover-foreground: 0 0% 100%;
 
-    --primary: 215 100% 32%; /* Bleu français */
+    --primary: 215 100% 32%;
     --primary-foreground: 0 0% 100%;
 
-    --secondary: 0 0% 100%; /* Blanc */
+    --secondary: 0 0% 100%;
     --secondary-foreground: 215 100% 32%;
 
     --muted: 0 0% 0%;
     --muted-foreground: 0 0% 100%;
 
-    --accent: 0 84% 60%; /* Rouge français */
+    --accent: 0 84% 60%;
     --accent-foreground: 0 0% 100%;
 
     --destructive: 0 84% 60%;
@@ -56,16 +56,16 @@
     --popover: 222.2 84% 4.9%;
     --popover-foreground: 0 0% 100%;
 
-    --primary: 215 100% 32%; /* Bleu français */
+    --primary: 215 100% 32%;
     --primary-foreground: 0 0% 100%;
 
-    --secondary: 0 0% 100%; /* Blanc */
+    --secondary: 0 0% 100%;
     --secondary-foreground: 215 100% 32%;
 
     --muted: 222.2 84% 4.9%;
     --muted-foreground: 0 0% 100%;
 
-    --accent: 0 84% 60%; /* Rouge français */
+    --accent: 0 84% 60%;
     --accent-foreground: 0 0% 100%;
 
     --destructive: 0 84% 60%;
@@ -201,7 +201,7 @@
 
   .loader-matrix:before {
     z-index: 1;
-    animation: spin 1.5s infinite; /* Plus rapide: 1.5s au lieu de 2s */
+    animation: spin 1.5s infinite;
   }
 
   .loader-matrix:after {
@@ -241,68 +241,56 @@
     @apply absolute top-0 right-0 h-full w-1/3 bg-france-red z-10;
   }
 
-  /* Add smooth hover effect for table rows */
   .table-row-hover:hover {
     @apply bg-terminal-darkGray bg-opacity-20 transition-all duration-200;
   }
 
-  /* Add pulse effect for status indicators */
   .status-pulse {
     animation: status-pulse 2s infinite;
   }
 
   @keyframes status-pulse {
     0% { opacity: 1; }
-    50% { opacity: 0.6; }
+    50% { opacity: 0.5; }
     100% { opacity: 1; }
   }
 
-  /* Matrix rain animation - faster version */
   @keyframes matrix-fall {
-    0% {
-      transform: translateY(-100vh);
-      opacity: 1;
-    }
-    100% {
-      transform: translateY(100vh);
-      opacity: 0.9;
-    }
+    0% { transform: translateY(-100%); }
+    100% { transform: translateY(100vh); }
   }
 
-  /* Updated animation for matrix fall */
   .animate-matrix-fall {
-    animation: matrix-fall 5s linear infinite; /* 5s au lieu de 8s */
+    animation: matrix-fall 5s linear infinite;
   }
-  
-  /* New hover effect for links */
+
   .link-hover {
     position: relative;
     display: inline-block;
   }
-  
+
   .link-hover::after {
     content: '';
     position: absolute;
     width: 100%;
-    height: 2px;
-    bottom: -2px;
-    left: 0;
-    background-color: #00ff00;
     transform: scaleX(0);
+    height: 2px;
+    bottom: 0;
+    left: 0;
+    background-color: currentColor;
     transform-origin: bottom right;
-    transition: transform 0.3s ease-out;
+    transition: transform 0.25s ease-out;
   }
-  
+
   .link-hover:hover::after {
     transform: scaleX(1);
     transform-origin: bottom left;
   }
-  
-  /* Glitch effect for text */
+
   .glitch {
     position: relative;
   }
-  
+
   .glitch::before,
   .glitch::after {
     content: attr(data-text);
@@ -312,94 +300,132 @@
     width: 100%;
     height: 100%;
   }
-  
+
   .glitch::before {
     left: 2px;
-    text-shadow: -2px 0 #00ffff;
-    clip: rect(44px, 450px, 56px, 0);
-    animation: glitch-anim 5s infinite linear alternate-reverse;
+    text-shadow: -2px 0 #ff0000;
+    clip: rect(24px, 550px, 90px, 0);
+    animation: glitch-anim 3s infinite linear alternate-reverse;
   }
-  
+
   .glitch::after {
     left: -2px;
-    text-shadow: -2px 0 #ff00ff;
-    clip: rect(24px, 450px, 36px, 0);
-    animation: glitch-anim2 4s infinite linear alternate-reverse;
+    text-shadow: -2px 0 #0000ff;
+    clip: rect(85px, 550px, 140px, 0);
+    animation: glitch-anim2 2.5s infinite linear alternate-reverse;
   }
-  
+
   @keyframes glitch-anim {
-    0% { clip: rect(21px, 9999px, 74px, 0); }
-    20% { clip: rect(3px, 9999px, 22px, 0); }
-    40% { clip: rect(71px, 9999px, 51px, 0); }
-    60% { clip: rect(42px, 9999px, 2px, 0); }
-    80% { clip: rect(28px, 9999px, 72px, 0); }
-    100% { clip: rect(65px, 9999px, 39px, 0); }
+    0% { clip: rect(24px, 550px, 90px, 0); }
+    20% { clip: rect(45px, 550px, 50px, 0); }
+    40% { clip: rect(12px, 550px, 32px, 0); }
+    60% { clip: rect(78px, 550px, 82px, 0); }
+    80% { clip: rect(34px, 550px, 98px, 0); }
+    100% { clip: rect(56px, 550px, 75px, 0); }
   }
-  
+
   @keyframes glitch-anim2 {
-    0% { clip: rect(96px, 9999px, 11px, 0); }
-    20% { clip: rect(23px, 9999px, 44px, 0); }
-    40% { clip: rect(15px, 9999px, 38px, 0); }
-    60% { clip: rect(89px, 9999px, 33px, 0); }
-    80% { clip: rect(76px, 9999px, 5px, 0); }
-    100% { clip: rect(82px, 9999px, 64px, 0); }
+    0% { clip: rect(85px, 550px, 140px, 0); }
+    20% { clip: rect(32px, 550px, 54px, 0); }
+    40% { clip: rect(67px, 550px, 98px, 0); }
+    60% { clip: rect(23px, 550px, 43px, 0); }
+    80% { clip: rect(12px, 550px, 78px, 0); }
+    100% { clip: rect(54px, 550px, 89px, 0); }
   }
 
   .france-button {
-    @apply bg-black text-france-white border px-4 py-2 rounded transition-all duration-300;
-    border-image: linear-gradient(45deg, #0055A4, #FFFFFF, #EF4135) 1;
-    box-shadow: 0 0 5px rgba(0, 85, 164, 0.2);
+    @apply bg-france-blue text-white px-4 py-2 rounded-lg font-medium transition-all duration-300;
+    box-shadow: 0 0 10px rgba(0, 85, 164, 0.5);
   }
-  
+
   .france-button:hover {
-    @apply text-white;
-    background: linear-gradient(45deg, #0055A4, #FFFFFF, #EF4135);
-    box-shadow: 0 0 15px rgba(0, 85, 164, 0.4);
-    transform: translateY(-2px);
+    @apply bg-france-blue/90;
+    box-shadow: 0 0 20px rgba(0, 85, 164, 0.7);
+    transform: translateY(-1px);
   }
-  
+
   .france-button:active {
     transform: translateY(1px);
-    box-shadow: 0 0 5px rgba(0, 85, 164, 0.2);
+    box-shadow: 0 0 5px rgba(0, 85, 164, 0.3);
   }
 
   .france-card {
-    @apply bg-black/90 backdrop-blur-sm p-6 rounded-lg;
-    border: 1px solid transparent;
-    background: linear-gradient(black, black) padding-box,
-                linear-gradient(45deg, #0055A4, #FFFFFF, #EF4135) border-box;
-    box-shadow: 0 0 20px rgba(0, 85, 164, 0.1);
+    @apply relative bg-black/75 rounded-lg p-6;
+    border: 2px solid transparent;
+    background-clip: padding-box;
   }
 
-  .france-card:hover {
-    box-shadow: 0 0 30px rgba(0, 85, 164, 0.2);
-    transform: translateY(-2px);
-    transition: all 0.3s ease;
+  .france-card::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    margin: -2px;
+    border-radius: inherit;
+    padding: 2px;
+    background: linear-gradient(45deg, #0055A4, #FFFFFF 50%, #EF4135);
+    mask: linear-gradient(#fff 0 0) content-box, 
+          linear-gradient(#fff 0 0);
+    -webkit-mask: linear-gradient(#fff 0 0) content-box, 
+                 linear-gradient(#fff 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
   }
 
   .france-border {
-    border: 1px solid transparent;
-    background: linear-gradient(black, black) padding-box,
-                linear-gradient(45deg, #0055A4, #FFFFFF, #EF4135) border-box;
+    @apply relative rounded-lg bg-black/75;
+  }
+
+  .france-border::before {
+    content: '';
+    position: absolute;
+    top: -3px;
+    left: -3px;
+    right: -3px;
+    bottom: -3px;
+    background: #0055A4;
+    border-radius: inherit;
+    z-index: -1;
+  }
+
+  .france-border::after {
+    content: '';
+    position: absolute;
+    top: -6px;
+    left: -6px;
+    right: -6px;
+    bottom: -6px;
+    background: #EF4135;
+    border-radius: inherit;
+    z-index: -2;
   }
 
   .france-text {
+    @apply font-bold;
     background: linear-gradient(45deg, #0055A4, #FFFFFF, #EF4135);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
-    animation: gradient 5s ease infinite;
-    text-shadow: 0 0 10px rgba(255, 255, 255, 0.2);
+    background-size: 200% auto;
+    animation: gradient 6s ease infinite;
   }
 
   .france-gradient {
     background: linear-gradient(45deg, #0055A4, #FFFFFF, #EF4135);
-    background-size: 200% 200%;
-    animation: gradient 5s ease infinite;
+    background-size: 200% auto;
+    animation: gradient 6s ease infinite;
   }
 
   @keyframes gradient {
     0% { background-position: 0% 50%; }
     50% { background-position: 100% 50%; }
     100% { background-position: 0% 50%; }
+  }
+
+  .france-outline {
+    @apply relative;
+    text-shadow: 
+      -1px -1px 0 #0055A4,
+      1px -1px 0 #FFFFFF,
+      -1px 1px 0 #FFFFFF,
+      1px 1px 0 #EF4135;
   }
 }

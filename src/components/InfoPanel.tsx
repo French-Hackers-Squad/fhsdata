@@ -14,11 +14,11 @@ const InfoPanel: React.FC<InfoPanelProps> = ({
     <div className="mt-8 p-4 border border-terminal-green rounded-md bg-terminal-black/80 backdrop-blur-sm">
       <div className="flex flex-col md:flex-row items-center md:items-start gap-6">
         <div className="flex-shrink-0 flex items-center justify-center">
-          <div className="relative w-32 h-32 md:w-40 md:h-40 rounded-full overflow-hidden border-2 border-terminal-green glow-text">
+          <div className="relative w-32 h-32 md:w-40 md:h-40 rounded-full overflow-hidden border-2 border-terminal-green glow-text bg-black">
             <img 
               src={logo} 
               alt="French Hackers Squad" 
-              className="w-full h-full object-cover"
+              className="absolute inset-0 w-[150%] h-[150%] object-contain scale-150"
             />
           </div>
         </div>
