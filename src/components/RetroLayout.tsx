@@ -71,7 +71,9 @@ const RetroLayout: React.FC<RetroLayoutProps> = ({ children }) => {
           <nav className="hidden md:flex items-center space-x-4">
             <NavLink to="/" active={location.pathname === "/"} icon={<Home size={16} />} onClick={handleNavigation('/')}>Accueil</NavLink>
             <NavLink to="/terminal" active={location.pathname === "/terminal"} icon={<Terminal size={16} />} onClick={handleNavigation('/terminal')}>Terminal</NavLink>
-            <NavLink to="/monitor" active={location.pathname === "/monitor"} icon={<Code size={16} />} onClick={handleNavigation('/monitor')}>Monitoring</NavLink>
+            {session && (
+              <NavLink to="/monitor" active={location.pathname === "/monitor"} icon={<Code size={16} />} onClick={handleNavigation('/monitor')}>Monitoring</NavLink>
+            )}
             <NavLink to="/about" active={location.pathname === "/about"} icon={<Info size={16} />} onClick={handleNavigation('/about')}>À Propos</NavLink>
             <NavLink to="/contact" active={location.pathname === "/contact"} icon={<Mail size={16} />} onClick={handleNavigation('/contact')}>Contact</NavLink>
             <NavLink to="/irisweb" active={location.pathname === "/irisweb"} icon={<Globe size={16} />} onClick={handleNavigation('/irisweb')}>IrisWeb</NavLink>
@@ -168,13 +170,15 @@ const MobileMenu = ({ session, onAuth, onNavigate }: { session: any, onAuth: () 
           >
             <Terminal size={16} className="inline mr-2" /> Terminal
           </a>
-          <a 
-            href="/monitor"
-            onClick={handleClick('/monitor')}
-            className={`block px-4 py-3 text-sm ${location.pathname === '/monitor' ? 'bg-black/10 text-zinc-100' : 'text-zinc-400'} hover:bg-black/10 hover:text-zinc-100`}
-          >
-            <Code size={16} className="inline mr-2" /> Monitoring
-          </a>
+          {session && (
+            <a 
+              href="/monitor"
+              onClick={handleClick('/monitor')}
+              className={`block px-4 py-3 text-sm ${location.pathname === '/monitor' ? 'bg-black/10 text-zinc-100' : 'text-zinc-400'} hover:bg-black/10 hover:text-zinc-100`}
+            >
+              <Code size={16} className="inline mr-2" /> Monitoring
+            </a>
+          )}
           <a 
             href="/about"
             onClick={handleClick('/about')}

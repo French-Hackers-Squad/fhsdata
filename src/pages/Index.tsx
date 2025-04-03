@@ -6,6 +6,8 @@ import { toast } from "@/components/ui/use-toast";
 import Header from "@/components/home/Header";
 import StatsCards from "@/components/home/StatsCards";
 import MonitoredSites from "@/components/home/MonitoredSites";
+import { useNavigate } from "react-router-dom";
+import { Shield } from "lucide-react";
 
 interface Website {
   id: string;
@@ -30,6 +32,7 @@ const Index = () => {
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('desc');
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [isMobile, setIsMobile] = useState(false);
+  const navigate = useNavigate();
 
   const fetchWebsites = async () => {
     setIsLoading(true);

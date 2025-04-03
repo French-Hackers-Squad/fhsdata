@@ -1,9 +1,13 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { supabase } from '@/integrations/supabase/client';
 import RetroLayout from '@/components/RetroLayout';
 import LoginHeader from '@/components/auth/LoginHeader';
 import AuthForm from '@/components/auth/AuthForm';
+import { toast } from '@/components/ui/use-toast';
 
 export default function Login() {
+  const navigate = useNavigate();
   const [isRegistering, setIsRegistering] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [email, setEmail] = useState('');
@@ -16,34 +20,52 @@ export default function Login() {
 
     try {
       if (isRegistering) {
-        // Logique d'inscription
-        const response = await fetch('/api/auth/register', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ email, password, registrationCode }),
+        // Vérification du code d'inscription
+        const { data: codeData, error: codeError } = await supabase
+          .from('registration_codes')
+          .select('*')
+          .eq('code', registrationCode)
+          .single();
+
+        if (codeError || !codeData) {
+          throw new Error('Code d\'inscription invalide');
+        }
+
+        // Inscription avec Supabase
+        const { data, error } = await supabase.auth.signUp({
+          email,
+          password,
         });
 
-        if (!response.ok) {
-          throw new Error('Erreur lors de l\'inscription');
-        }
+        if (error) throw error;
+
+        toast({
+          title: "Inscription réussie",
+          description: "Veuillez vérifier votre email pour confirmer votre compte.",
+        });
       } else {
-        // Logique de connexion
-        const response = await fetch('/api/auth/login', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ email, password }),
+        // Connexion avec Supabase
+        const { data, error } = await supabase.auth.signInWithPassword({
+          email,
+          password,
         });
 
-        if (!response.ok) {
-          throw new Error('Erreur lors de la connexion');
-        }
-      }
+        if (error) throw error;
 
-      // Redirection après succès
-      window.location.href = '/dashboard';
-    } catch (error) {
+        toast({
+          title: "Connexion réussie",
+          description: "Vous êtes maintenant connecté.",
+        });
+
+        navigate('/');
+      }
+    } catch (error: any) {
       console.error('Erreur:', error);
-      // Gérer l'erreur (afficher un message, etc.)
+      toast({
+        title: "Erreur",
+        description: error.message || "Une erreur est survenue",
+        variant: "destructive"
+      });
     } finally {
       setIsLoading(false);
     }
