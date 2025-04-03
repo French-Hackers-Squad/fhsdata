@@ -7,7 +7,7 @@ interface InfoPanelProps {
 }
 
 const InfoPanel: React.FC<InfoPanelProps> = ({ 
-  logo = "/lovable-uploads/2fa56283-0525-4e07-ab42-7818a5e1782c.png", 
+  logo = "/src/assets/logo.png", 
   description = "French Hackers Squad est une élite de spécialistes en cybersécurité basée en France. Notre mission est de protéger les infrastructures numériques contre les menaces émergentes." 
 }) => {
   return (
