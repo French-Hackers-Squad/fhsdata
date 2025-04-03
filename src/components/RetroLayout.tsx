@@ -55,7 +55,7 @@ const RetroLayout: React.FC<RetroLayoutProps> = ({ children }) => {
       <MatrixBackground density={200} />
       
       {/* Header */}
-      <header className="relative z-20">
+      <header className="relative z-30">
         <div className="w-full max-w-[1920px] mx-auto px-4 md:px-6 py-4 flex items-center justify-between bg-black/75 border-b border-zinc-800">
           <a href="/" onClick={handleNavigation('/')} className="flex items-center space-x-2">
             <div className="relative w-8 h-8 md:w-10 md:h-10 rounded-full overflow-hidden border border-zinc-800 bg-black/10 flex items-center justify-center">
