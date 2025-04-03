@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Home, Info, Mail, Code, MessageSquare, Globe, LogIn, LogOut, User } from 'lucide-react';
+import { Home, Info, Mail, Code, MessageSquare, Globe, LogIn, LogOut, User, Terminal } from 'lucide-react';
 import MatrixBackground from './MatrixBackground';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
@@ -62,7 +62,8 @@ const RetroLayout: React.FC<RetroLayoutProps> = ({ children }) => {
           </Link>
           
           <nav className="hidden md:flex items-center space-x-4">
-            <NavLink href="/" active={location.pathname === "/"} icon={<Home size={16} />}>Terminal</NavLink>
+            <NavLink href="/" active={location.pathname === "/"} icon={<Home size={16} />}>Accueil</NavLink>
+            <NavLink href="/terminal" active={location.pathname === "/terminal"} icon={<Terminal size={16} />}>Terminal</NavLink>
             <NavLink href="/monitor" active={location.pathname === "/monitor"} icon={<Code size={16} />}>Monitoring</NavLink>
             <NavLink href="/about" active={location.pathname === "/about"} icon={<Info size={16} />}>À Propos</NavLink>
             <NavLink href="/contact" active={location.pathname === "/contact"} icon={<Mail size={16} />}>Contact</NavLink>
@@ -146,7 +147,14 @@ const MobileMenu = ({ session, onAuth }: { session: any, onAuth: () => void }) =
             className={`block px-4 py-3 text-sm ${location.pathname === '/' ? 'bg-black/10 text-zinc-100' : 'text-zinc-400'} hover:bg-black/10 hover:text-zinc-100`}
             onClick={() => setIsOpen(false)}
           >
-            <Home size={16} className="inline mr-2" /> Terminal
+            <Home size={16} className="inline mr-2" /> Accueil
+          </Link>
+          <Link 
+            to="/terminal" 
+            className={`block px-4 py-3 text-sm ${location.pathname === '/terminal' ? 'bg-black/10 text-zinc-100' : 'text-zinc-400'} hover:bg-black/10 hover:text-zinc-100`}
+            onClick={() => setIsOpen(false)}
+          >
+            <Terminal size={16} className="inline mr-2" /> Terminal
           </Link>
           <Link 
             to="/monitor" 

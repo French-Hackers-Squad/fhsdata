@@ -39,7 +39,12 @@ const TerminalSection: React.FC<TerminalSectionProps> = ({
     <div className="france-card p-6 mb-12">
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center gap-3">
-          <Terminal className="text-france-blue" size={24} />
+          <div className="flex gap-2">
+            <div className="w-3 h-3 rounded-full bg-france-blue hover:bg-france-blue/80 cursor-pointer" />
+            <div className="w-3 h-3 rounded-full bg-white hover:bg-white/80 cursor-pointer" />
+            <div className="w-3 h-3 rounded-full bg-france-red hover:bg-france-red/80 cursor-pointer" />
+          </div>
+          <Terminal className="text-france-blue ml-3" size={24} />
           <h2 className="text-2xl font-bold france-text">Terminal</h2>
         </div>
       </div>
@@ -63,8 +68,10 @@ const TerminalSection: React.FC<TerminalSectionProps> = ({
               )}
             </div>
           ))}
+        </div>
+        <div className="relative mt-4">
           {showSuggestions && suggestions.length > 0 && (
-            <div className="absolute bottom-full left-0 right-0 bg-black/90 border border-france-blue/30 rounded-lg p-2 mb-2">
+            <div className="absolute bottom-full left-0 right-0 bg-black/90 border border-france-blue/30 rounded-lg p-2 mb-1">
               {suggestions.map((suggestion, index) => (
                 <div
                   key={index}
@@ -79,34 +86,34 @@ const TerminalSection: React.FC<TerminalSectionProps> = ({
               ))}
             </div>
           )}
-        </div>
-        <div className="mt-4 flex gap-2">
-          <Input
-            type="text"
-            value={terminalInput}
-            onChange={handleInputChange}
-            onKeyDown={(e) => {
-              handleKeyDown(e);
-              handleTab(e);
-            }}
-            onKeyPress={(e) => {
-              if (e.key === 'Enter') {
+          <div className="flex gap-2">
+            <Input
+              type="text"
+              value={terminalInput}
+              onChange={handleInputChange}
+              onKeyDown={(e) => {
+                handleKeyDown(e);
+                handleTab(e);
+              }}
+              onKeyPress={(e) => {
+                if (e.key === 'Enter') {
+                  handleCommand(terminalInput);
+                  setTerminalInput('');
+                }
+              }}
+              placeholder="Entrez une commande..."
+              className="flex-1 bg-black/50 border-france-blue/30 text-france-white font-terminal"
+            />
+            <Button
+              onClick={() => {
                 handleCommand(terminalInput);
                 setTerminalInput('');
-              }
-            }}
-            placeholder="Entrez une commande..."
-            className="flex-1 bg-black/50 border-france-blue/30 text-france-white font-terminal"
-          />
-          <Button
-            onClick={() => {
-              handleCommand(terminalInput);
-              setTerminalInput('');
-            }}
-            className="france-button"
-          >
-            Exécuter
-          </Button>
+              }}
+              className="france-button"
+            >
+              Exécuter
+            </Button>
+          </div>
         </div>
       </div>
     </div>

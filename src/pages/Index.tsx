@@ -2,12 +2,10 @@ import React, { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import RetroLayout from "@/components/RetroLayout";
 import MatrixBackground from "@/components/MatrixBackground";
-import { handleTerminalCommand, getSuggestions } from "@/data/terminalCommands";
 import { toast } from "@/components/ui/use-toast";
 import Header from "@/components/home/Header";
 import StatsCards from "@/components/home/StatsCards";
 import MonitoredSites from "@/components/home/MonitoredSites";
-import TerminalSection from "@/components/home/TerminalSection";
 
 interface Website {
   id: string;
@@ -22,16 +20,7 @@ interface Website {
   ecrie: boolean;
 }
 
-interface TerminalOutput {
-  type: 'input' | 'output';
-  content: string;
-}
-
 const Index = () => {
-  const [terminalInput, setTerminalInput] = useState<string>("");
-  const [terminalOutput, setTerminalOutput] = useState<TerminalOutput[]>([]);
-  const [terminalHistory, setTerminalHistory] = useState<string[]>([]);
-  const [historyIndex, setHistoryIndex] = useState<number>(-1);
   const [session, setSession] = useState<any>(null);
   const [websites, setWebsites] = useState<Website[]>([]);
   const [filteredWebsites, setFilteredWebsites] = useState<Website[]>([]);
@@ -40,8 +29,6 @@ const Index = () => {
   const [priorityFilter, setPriorityFilter] = useState<string>('');
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('desc');
   const [isLoading, setIsLoading] = useState<boolean>(true);
-  const [suggestions, setSuggestions] = useState<string[]>([]);
-  const [showSuggestions, setShowSuggestions] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
 
   const fetchWebsites = async () => {
@@ -151,55 +138,6 @@ const Index = () => {
     setFilteredWebsites(result);
   }, [websites, searchTerm, statusFilter, priorityFilter, sortDirection]);
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const input = e.target.value;
-    setTerminalInput(input);
-    
-    if (input.trim() === '') {
-      setShowSuggestions(false);
-      return;
-    }
-
-    const suggestions = getSuggestions(input);
-    setSuggestions(suggestions);
-    setShowSuggestions(suggestions.length > 0);
-  };
-
-  const handleTab = (e: React.KeyboardEvent) => {
-    if (e.key === 'Tab' && suggestions.length > 0) {
-      e.preventDefault();
-      setTerminalInput(suggestions[0]);
-      setShowSuggestions(false);
-    }
-  };
-
-  const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === 'ArrowUp' && terminalHistory.length > 0) {
-      e.preventDefault();
-      const newIndex = historyIndex < terminalHistory.length - 1 ? historyIndex + 1 : historyIndex;
-      setHistoryIndex(newIndex);
-      setTerminalInput(terminalHistory[terminalHistory.length - 1 - newIndex]);
-    } else if (e.key === 'ArrowDown' && historyIndex >= 0) {
-      e.preventDefault();
-      const newIndex = historyIndex - 1;
-      setHistoryIndex(newIndex);
-      setTerminalInput(newIndex >= 0 ? terminalHistory[terminalHistory.length - 1 - newIndex] : '');
-    }
-  };
-
-  const handleCommand = (command: string) => {
-    setShowSuggestions(false);
-    handleTerminalCommand(
-      command,
-      session,
-      websites,
-      terminalHistory,
-      setTerminalOutput,
-      setTerminalHistory,
-      setHistoryIndex
-    );
-  };
-
   useEffect(() => {
     const handleResize = () => {
       setIsMobile(window.innerWidth < 768);
@@ -232,18 +170,6 @@ const Index = () => {
               setStatusFilter={setStatusFilter}
               setPriorityFilter={setPriorityFilter}
               setSortDirection={setSortDirection}
-            />
-            <TerminalSection 
-              terminalInput={terminalInput}
-              terminalOutput={terminalOutput}
-              suggestions={suggestions}
-              showSuggestions={showSuggestions}
-              setTerminalInput={setTerminalInput}
-              handleCommand={handleCommand}
-              handleInputChange={handleInputChange}
-              handleKeyDown={handleKeyDown}
-              handleTab={handleTab}
-              setShowSuggestions={setShowSuggestions}
             />
             <div className="flex items-center justify-center gap-2 mb-12">
               <div className="h-px w-10 bg-france-blue/30"></div>

@@ -12,6 +12,7 @@ import NotFound from "@/pages/NotFound";
 import IrisWeb from "@/pages/IrisWeb";
 import Login from "@/pages/Login";
 import Profile from "@/pages/Profile";
+import Terminal from "@/pages/Terminal";
 import ProtectedRoute from "@/components/ProtectedRoute";
 
 const queryClient = new QueryClient();
@@ -26,6 +27,7 @@ const App = () => {
           <Routes>
             <Route path="/" element={<Index />} />
             <Route path="/login" element={<Login />} />
+            <Route path="/terminal" element={<Terminal />} />
             <Route 
               path="/monitor" 
               element={
