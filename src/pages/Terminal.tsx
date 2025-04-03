@@ -2,13 +2,9 @@ import React, { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import RetroLayout from "@/components/RetroLayout";
 import MatrixBackground from "@/components/MatrixBackground";
-import { handleTerminalCommand, getSuggestions } from "@/data/terminalCommands";
+import { handleTerminalCommand, getSuggestions, executeCommand } from "@/data/terminalCommands";
 import TerminalSection from "@/components/home/TerminalSection";
-
-interface TerminalOutput {
-  type: 'input' | 'output';
-  content: string;
-}
+import { TerminalOutput } from '@/types/terminal';
 
 interface Website {
   id: string;
@@ -33,19 +29,21 @@ const Terminal = () => {
   const [suggestions, setSuggestions] = useState<string[]>([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
+  const [pfcGameActive, setPfcGameActive] = useState(false);
+  const [puissance4GameActive, setPuissance4GameActive] = useState(false);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const input = e.target.value;
-    setTerminalInput(input);
+    const value = e.target.value;
+    setTerminalInput(value);
     
-    if (input.trim() === '') {
+    if (value.trim() === '') {
       setShowSuggestions(false);
       return;
     }
 
-    const suggestions = getSuggestions(input);
-    setSuggestions(suggestions);
-    setShowSuggestions(suggestions.length > 0);
+    const newSuggestions = getSuggestions(value);
+    setSuggestions(newSuggestions);
+    setShowSuggestions(newSuggestions.length > 0);
   };
 
   const handleTab = (e: React.KeyboardEvent) => {
@@ -57,7 +55,13 @@ const Terminal = () => {
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === 'ArrowUp' && terminalHistory.length > 0) {
+    if (e.key === 'Enter') {
+      handleCommand(terminalInput);
+      setTerminalInput('');
+      setShowSuggestions(false);
+    } else if (e.key === 'Escape') {
+      setShowSuggestions(false);
+    } else if (e.key === 'ArrowUp' && terminalHistory.length > 0) {
       e.preventDefault();
       const newIndex = historyIndex < terminalHistory.length - 1 ? historyIndex + 1 : historyIndex;
       setHistoryIndex(newIndex);
@@ -71,7 +75,23 @@ const Terminal = () => {
   };
 
   const handleCommand = (command: string) => {
-    setShowSuggestions(false);
+    if (!command.trim()) return;
+
+    // Si la commande est 'exit' et qu'un jeu est actif, ne pas l'ajouter à l'historique
+    if (command === 'exit') {
+      handleTerminalCommand(
+        command,
+        session,
+        websites,
+        terminalHistory,
+        setTerminalOutput,
+        setTerminalHistory,
+        setHistoryIndex
+      );
+      return;
+    }
+
+    // Utiliser handleTerminalCommand pour les autres commandes
     handleTerminalCommand(
       command,
       session,
