@@ -1,7 +1,9 @@
 import React from 'react';
+import { useAppUrl } from '@/hooks/useAppUrl';
 
 const Header = () => {
-  const logo = "/img/logo.png";
+  const { getAssetPath } = useAppUrl();
+  const logo = getAssetPath("/img/logo.png");
 
   return (
     <div className="pt-6 md:pt-10 pb-4 md:pb-6 text-center flex flex-col items-center">

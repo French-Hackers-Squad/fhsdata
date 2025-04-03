@@ -1,5 +1,6 @@
 import RetroLayout from "@/components/RetroLayout";
 import { Code, Globe, Shield, Terminal, Palette, Server, Smartphone, Zap, GitBranch, Gitlab } from "lucide-react";
+import { getPublicPath } from "@/utils/path";
 
 const IrisWeb = () => {
   return (
@@ -11,7 +12,7 @@ const IrisWeb = () => {
               <div className="text-center mb-12">
                 <div className="h-32 w-32 mx-auto mb-6 rounded-full overflow-hidden france-border">
                   <img 
-                    src="/img/iris.jpg" 
+                    src={getPublicPath("/img/iris.jpg")} 
                     alt="Logo IrisWeb" 
                     className="w-full h-full object-cover"
                   />

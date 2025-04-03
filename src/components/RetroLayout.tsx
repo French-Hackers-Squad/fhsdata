@@ -3,6 +3,7 @@ import { Home, Info, Mail, Code, MessageSquare, Globe, LogIn, LogOut, User, Term
 import MatrixBackground from './MatrixBackground';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
+import { useAppUrl } from '@/hooks/useAppUrl';
 
 interface RetroLayoutProps {
   children: React.ReactNode;
@@ -11,7 +12,8 @@ interface RetroLayoutProps {
 const RetroLayout: React.FC<RetroLayoutProps> = ({ children }) => {
   const location = useLocation();
   const navigate = useNavigate();
-  const logo = "/img/logo.png";
+  const { getAssetPath, navigateTo } = useAppUrl();
+  const logo = getAssetPath("/img/logo.png");
   const [session, setSession] = useState<any>(null);
 
   useEffect(() => {
@@ -36,10 +38,15 @@ const RetroLayout: React.FC<RetroLayoutProps> = ({ children }) => {
   const handleAuth = async () => {
     if (session) {
       await supabase.auth.signOut();
-      navigate('/');
+      navigateTo('/');
     } else {
-      navigate('/login');
+      navigateTo('/login');
     }
+  };
+
+  const handleNavigation = (path: string) => (e: React.MouseEvent) => {
+    e.preventDefault();
+    navigateTo(path);
   };
 
   return (
@@ -50,7 +57,7 @@ const RetroLayout: React.FC<RetroLayoutProps> = ({ children }) => {
       {/* Header */}
       <header className="relative z-20">
         <div className="w-full max-w-[1920px] mx-auto px-4 md:px-6 py-4 flex items-center justify-between bg-black/75 border-b border-zinc-800">
-          <Link to="/" className="flex items-center space-x-2">
+          <a href="/" onClick={handleNavigation('/')} className="flex items-center space-x-2">
             <div className="relative w-8 h-8 md:w-10 md:h-10 rounded-full overflow-hidden border border-zinc-800 bg-black/10 flex items-center justify-center">
               <img 
                 src={logo} 
@@ -59,18 +66,18 @@ const RetroLayout: React.FC<RetroLayoutProps> = ({ children }) => {
               />
             </div>
             <span className="text-lg md:text-xl font-bold text-zinc-100">FHS</span>
-          </Link>
+          </a>
           
           <nav className="hidden md:flex items-center space-x-4">
-            <NavLink href="/" active={location.pathname === "/"} icon={<Home size={16} />}>Accueil</NavLink>
-            <NavLink href="/terminal" active={location.pathname === "/terminal"} icon={<Terminal size={16} />}>Terminal</NavLink>
-            <NavLink href="/monitor" active={location.pathname === "/monitor"} icon={<Code size={16} />}>Monitoring</NavLink>
-            <NavLink href="/about" active={location.pathname === "/about"} icon={<Info size={16} />}>À Propos</NavLink>
-            <NavLink href="/contact" active={location.pathname === "/contact"} icon={<Mail size={16} />}>Contact</NavLink>
-            <NavLink href="/irisweb" active={location.pathname === "/irisweb"} icon={<Globe size={16} />}>IrisWeb</NavLink>
+            <NavLink to="/" active={location.pathname === "/"} icon={<Home size={16} />} onClick={handleNavigation('/')}>Accueil</NavLink>
+            <NavLink to="/terminal" active={location.pathname === "/terminal"} icon={<Terminal size={16} />} onClick={handleNavigation('/terminal')}>Terminal</NavLink>
+            <NavLink to="/monitor" active={location.pathname === "/monitor"} icon={<Code size={16} />} onClick={handleNavigation('/monitor')}>Monitoring</NavLink>
+            <NavLink to="/about" active={location.pathname === "/about"} icon={<Info size={16} />} onClick={handleNavigation('/about')}>À Propos</NavLink>
+            <NavLink to="/contact" active={location.pathname === "/contact"} icon={<Mail size={16} />} onClick={handleNavigation('/contact')}>Contact</NavLink>
+            <NavLink to="/irisweb" active={location.pathname === "/irisweb"} icon={<Globe size={16} />} onClick={handleNavigation('/irisweb')}>IrisWeb</NavLink>
             <NavLink href="https://discord.gg/fhs" active={false} icon={<MessageSquare size={16} />} external>Discord</NavLink>
             {session && (
-              <NavLink href="/profile" active={location.pathname === "/profile"} icon={<User size={16} />}>Profil</NavLink>
+              <NavLink to="/profile" active={location.pathname === "/profile"} icon={<User size={16} />} onClick={handleNavigation('/profile')}>Profil</NavLink>
             )}
             <button
               onClick={handleAuth}
@@ -91,7 +98,7 @@ const RetroLayout: React.FC<RetroLayoutProps> = ({ children }) => {
           </nav>
           
           <div className="md:hidden">
-            <MobileMenu session={session} onAuth={handleAuth} />
+            <MobileMenu session={session} onAuth={handleAuth} onNavigate={handleNavigation} />
           </div>
         </div>
       </header>
@@ -113,7 +120,7 @@ const RetroLayout: React.FC<RetroLayoutProps> = ({ children }) => {
             &copy; {new Date().getFullYear()} French Hackers Squad • Tous les systèmes surveillés
           </p>
           <p className="mt-1 text-france-white/80">
-            Créé par <Link to="/irisweb" className="hover:text-france-blue transition-colors">iHorizon Project (IrisWeb)</Link>
+            Créé par <a href="/irisweb" onClick={handleNavigation('/irisweb')} className="hover:text-france-blue transition-colors">iHorizon Project (IrisWeb)</a>
           </p>
         </div>
       </footer>
@@ -122,9 +129,14 @@ const RetroLayout: React.FC<RetroLayoutProps> = ({ children }) => {
 };
 
 // Mobile Menu Component
-const MobileMenu = ({ session, onAuth }: { session: any, onAuth: () => void }) => {
+const MobileMenu = ({ session, onAuth, onNavigate }: { session: any, onAuth: () => void, onNavigate: (path: string) => (e: React.MouseEvent) => void }) => {
   const [isOpen, setIsOpen] = React.useState(false);
   const location = useLocation();
+
+  const handleClick = (path: string) => (e: React.MouseEvent) => {
+    setIsOpen(false);
+    onNavigate(path)(e);
+  };
 
   return (
     <div className="relative">
@@ -142,65 +154,64 @@ const MobileMenu = ({ session, onAuth }: { session: any, onAuth: () => void }) =
 
       {isOpen && (
         <div className="fixed top-16 right-0 left-0 mt-0 py-2 bg-black/5 backdrop-blur-sm border border-zinc-800 shadow-lg z-50 mx-4 rounded-xl">
-          <Link 
-            to="/" 
+          <a 
+            href="/"
+            onClick={handleClick('/')}
             className={`block px-4 py-3 text-sm ${location.pathname === '/' ? 'bg-black/10 text-zinc-100' : 'text-zinc-400'} hover:bg-black/10 hover:text-zinc-100`}
-            onClick={() => setIsOpen(false)}
           >
             <Home size={16} className="inline mr-2" /> Accueil
-          </Link>
-          <Link 
-            to="/terminal" 
+          </a>
+          <a 
+            href="/terminal"
+            onClick={handleClick('/terminal')}
             className={`block px-4 py-3 text-sm ${location.pathname === '/terminal' ? 'bg-black/10 text-zinc-100' : 'text-zinc-400'} hover:bg-black/10 hover:text-zinc-100`}
-            onClick={() => setIsOpen(false)}
           >
             <Terminal size={16} className="inline mr-2" /> Terminal
-          </Link>
-          <Link 
-            to="/monitor" 
+          </a>
+          <a 
+            href="/monitor"
+            onClick={handleClick('/monitor')}
             className={`block px-4 py-3 text-sm ${location.pathname === '/monitor' ? 'bg-black/10 text-zinc-100' : 'text-zinc-400'} hover:bg-black/10 hover:text-zinc-100`}
-            onClick={() => setIsOpen(false)}
           >
             <Code size={16} className="inline mr-2" /> Monitoring
-          </Link>
-          <Link 
-            to="/about" 
+          </a>
+          <a 
+            href="/about"
+            onClick={handleClick('/about')}
             className={`block px-4 py-3 text-sm ${location.pathname === '/about' ? 'bg-black/10 text-zinc-100' : 'text-zinc-400'} hover:bg-black/10 hover:text-zinc-100`}
-            onClick={() => setIsOpen(false)}
           >
             <Info size={16} className="inline mr-2" /> À Propos
-          </Link>
-          <Link 
-            to="/contact" 
+          </a>
+          <a 
+            href="/contact"
+            onClick={handleClick('/contact')}
             className={`block px-4 py-3 text-sm ${location.pathname === '/contact' ? 'bg-black/10 text-zinc-100' : 'text-zinc-400'} hover:bg-black/10 hover:text-zinc-100`}
-            onClick={() => setIsOpen(false)}
           >
             <Mail size={16} className="inline mr-2" /> Contact
-          </Link>
-          <Link 
-            to="/irisweb" 
+          </a>
+          <a 
+            href="/irisweb"
+            onClick={handleClick('/irisweb')}
             className={`block px-4 py-3 text-sm ${location.pathname === '/irisweb' ? 'bg-black/10 text-zinc-100' : 'text-zinc-400'} hover:bg-black/10 hover:text-zinc-100`}
-            onClick={() => setIsOpen(false)}
           >
             <Globe size={16} className="inline mr-2" /> IrisWeb
-          </Link>
+          </a>
           <a 
             href="https://discord.gg/fhs" 
             target="_blank" 
             rel="noopener noreferrer"
             className="block px-4 py-3 text-sm text-france-white hover:bg-france-blue hover:text-white"
-            onClick={() => setIsOpen(false)}
           >
             <MessageSquare size={16} className="inline mr-2" /> Discord
           </a>
           {session && (
-            <Link 
-              to="/profile" 
+            <a 
+              href="/profile"
+              onClick={handleClick('/profile')}
               className={`block px-4 py-3 text-sm ${location.pathname === '/profile' ? 'bg-black/10 text-zinc-100' : 'text-zinc-400'} hover:bg-black/10 hover:text-zinc-100`}
-              onClick={() => setIsOpen(false)}
             >
               <User size={16} className="inline mr-2" /> Profil
-            </Link>
+            </a>
           )}
           <button
             onClick={() => {
@@ -229,13 +240,15 @@ const MobileMenu = ({ session, onAuth }: { session: any, onAuth: () => void }) =
 
 // Navigation Link component
 const NavLink: React.FC<{ 
-  href: string; 
+  to?: string;
+  href?: string;
   children: React.ReactNode; 
   active: boolean; 
   icon: React.ReactNode;
   external?: boolean;
-}> = ({ href, children, active, icon, external = false }) => {
-  if (external) {
+  onClick?: (e: React.MouseEvent) => void;
+}> = ({ to, href, children, active, icon, external = false, onClick }) => {
+  if (external && href) {
     return (
       <a 
         href={href} 
@@ -250,13 +263,14 @@ const NavLink: React.FC<{
   }
 
   return (
-    <Link 
-      to={href} 
+    <a 
+      href={to || '/'} 
+      onClick={onClick}
       className={`inline-flex items-center px-4 py-2 text-sm rounded-lg transition-colors ${active ? 'bg-black/10 text-zinc-100' : 'text-zinc-400'} hover:bg-black/10 hover:text-zinc-100`}
     >
       {icon && <span className="mr-2">{icon}</span>}
       {children}
-    </Link>
+    </a>
   );
 };
 
