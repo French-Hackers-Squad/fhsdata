@@ -13,6 +13,7 @@ import IrisWeb from "@/pages/IrisWeb";
 import Login from "@/pages/Login";
 import Profile from "@/pages/Profile";
 import Terminal from "@/pages/Terminal";
+import AttackReference from "@/pages/AttackReference";
 import ProtectedRoute from "@/components/ProtectedRoute";
 
 const queryClient = new QueryClient();
@@ -27,6 +28,7 @@ const App = () => {
           <Route path="/" element={<Index />} />
           <Route path="/login" element={<Login />} />
           <Route path="/terminal" element={<Terminal />} />
+          <Route path="/attacks" element={<AttackReference />} />
           <Route 
             path="/monitor" 
             element={

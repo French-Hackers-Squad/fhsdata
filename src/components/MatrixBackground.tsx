@@ -37,7 +37,7 @@ const MatrixBackground: React.FC<MatrixBackgroundProps> = ({ density = 150 }) =>
   }, [density]);
 
   return (
-    <div className="matrix-bg">
+    <div className="matrix-bg" style={{ pointerEvents: 'none', zIndex: -1 }}>
       {characters.map((char) => (
         <div
           key={char.id}
@@ -47,7 +47,9 @@ const MatrixBackground: React.FC<MatrixBackgroundProps> = ({ density = 150 }) =>
             animationDuration: `${char.speed}s`,
             animationDelay: `${char.delay}s`,
             color: char.color,
-            textShadow: `0 0 5px ${char.color}, 0 0 10px ${char.color}`
+            textShadow: `0 0 5px ${char.color}, 0 0 10px ${char.color}`,
+            pointerEvents: 'none',
+            zIndex: -1
           }}
         >
           {char.char}

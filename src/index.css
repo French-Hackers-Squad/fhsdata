@@ -83,15 +83,136 @@
     --sidebar-border: 240 3.7% 15.9%;
     --sidebar-ring: 217.2 91.2% 59.8%;
   }
-}
 
-@layer base {
   * {
     @apply border-border;
   }
 
   body {
     @apply bg-terminal-black text-terminal-green font-terminal;
+    position: relative;
+  }
+
+  /* Styles de base pour les éléments interactifs */
+  button,
+  input,
+  select,
+  textarea,
+  a,
+  [role="button"],
+  [role="tab"],
+  [role="menuitem"],
+  [role="option"],
+  [role="checkbox"],
+  [role="radio"],
+  [role="switch"],
+  [role="slider"],
+  [role="combobox"],
+  [role="listbox"],
+  [role="menu"],
+  [role="menubar"],
+  [role="tablist"],
+  [role="tabpanel"],
+  [role="tree"],
+  [role="treeitem"],
+  [role="grid"],
+  [role="gridcell"],
+  [role="row"],
+  [role="columnheader"],
+  [role="rowheader"],
+  [role="dialog"],
+  [role="alertdialog"],
+  [role="tooltip"],
+  [role="toolbar"],
+  [role="status"],
+  [role="log"],
+  [role="marquee"],
+  [role="timer"],
+  [role="progressbar"],
+  [role="scrollbar"],
+  [role="separator"],
+  [role="searchbox"],
+  [role="spinbutton"],
+  [role="textbox"],
+  [role="list"],
+  [role="listitem"],
+  [role="definition"],
+  [role="term"],
+  [role="article"],
+  [role="banner"],
+  [role="complementary"],
+  [role="contentinfo"],
+  [role="form"],
+  [role="main"],
+  [role="navigation"],
+  [role="region"],
+  [role="search"],
+  [role="application"] {
+    position: relative;
+    z-index: 40;
+    pointer-events: auto;
+  }
+
+  /* Styles pour le contenu sélectionnable */
+  p, h1, h2, h3, h4, h5, h6, span, div, li, td, th, label, pre, code, blockquote, article, section, aside, nav, header, footer, main {
+    position: relative;
+    z-index: 30;
+    user-select: text;
+    -webkit-user-select: text;
+    -moz-user-select: text;
+    -ms-user-select: text;
+  }
+
+  /* Styles pour les conteneurs de contenu */
+  .content-wrapper,
+  .card,
+  .dialog,
+  .modal,
+  .popover,
+  .tooltip,
+  .dropdown,
+  .menu,
+  .context-menu,
+  .toast,
+  .alert,
+  .notification,
+  .banner,
+  .header,
+  .footer,
+  .sidebar,
+  .main-content,
+  .form-container,
+  .table-container,
+  .list-container,
+  .grid-container,
+  .flex-container {
+    position: relative;
+    z-index: 30;
+    user-select: text;
+    -webkit-user-select: text;
+    -moz-user-select: text;
+    -ms-user-select: text;
+  }
+
+  /* Styles pour l'effet matrix */
+  .matrix-bg {
+    @apply fixed top-0 left-0 w-full h-full z-[-1] overflow-hidden opacity-40;
+    pointer-events: none;
+    user-select: none;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+  }
+
+  .matrix-char {
+    @apply absolute font-code text-xs sm:text-sm md:text-base;
+    animation: matrix-fall 2s linear infinite;
+    pointer-events: none;
+    z-index: -1;
+    user-select: none;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
   }
 
   .terminal-text {
@@ -107,15 +228,6 @@
     @apply border border-terminal-green bg-terminal-black p-4 rounded;
     box-shadow: 0 0 10px #00ff00, inset 0 0 5px rgba(0, 255, 0, 0.3);
     animation: border-pulse 4s infinite alternate;
-  }
-
-  .matrix-bg {
-    @apply fixed top-0 left-0 w-full h-full z-0 overflow-hidden opacity-40 pointer-events-none;
-  }
-
-  .matrix-char {
-    @apply absolute font-code text-xs sm:text-sm md:text-base;
-    animation: matrix-fall 2s linear infinite;
   }
 
   .typing-animation {
@@ -218,6 +330,8 @@
   .retro-button {
     @apply bg-terminal-gray text-terminal-green border border-terminal-green px-4 py-2 rounded font-terminal transition-all duration-300;
     box-shadow: 0 0 5px #00ff00;
+    position: relative;
+    z-index: 2;
   }
   
   .retro-button:hover {
