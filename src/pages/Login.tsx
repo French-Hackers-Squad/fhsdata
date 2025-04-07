@@ -31,13 +31,32 @@ export default function Login() {
           throw new Error('Code d\'inscription invalide');
         }
 
+        if (codeData.is_used) {
+          throw new Error('Ce code d\'inscription a déjà été utilisé');
+        }
+
         // Inscription avec Supabase
-        const { data, error } = await supabase.auth.signUp({
+        const { data: authData, error: authError } = await supabase.auth.signUp({
           email,
           password,
         });
 
-        if (error) throw error;
+        if (authError) throw authError;
+
+        // Mettre à jour le statut du code d'inscription
+        const { error: updateError } = await supabase
+          .from('registration_codes')
+          .update({ 
+            is_used: true,
+            used_by: authData.user?.id,
+            used_at: new Date().toISOString()
+          })
+          .eq('code', registrationCode);
+
+        if (updateError) {
+          console.error('Erreur lors de la mise à jour du code:', updateError);
+          // On continue quand même car l'utilisateur est déjà créé
+        }
 
         toast({
           title: "Inscription réussie",
