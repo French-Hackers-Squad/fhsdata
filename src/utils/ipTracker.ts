@@ -22,13 +22,20 @@ export async function trackVisitorIP() {
         const username = user?.user_metadata?.username || user?.email || 'none';
 
         // Vérifier si une entrée existe déjà pour cette IP
-        const { data: existingEntry } = await supabase
+        const { data: existingEntries, error: selectError } = await supabase
             .from('visitor_ips')
             .select('*')
-            .eq('ip_address', ipAddress)
-            .single();
+            .eq('ip_address', ipAddress);
 
-        if (existingEntry) {
+        if (selectError) {
+            console.error('Erreur lors de la vérification de l\'IP:', selectError);
+            return;
+        }
+
+        if (existingEntries && existingEntries.length > 0) {
+            // Utiliser la première entrée trouvée
+            const existingEntry = existingEntries[0];
+            
             // Mettre à jour l'entrée existante
             const { error: updateError } = await supabase
                 .from('visitor_ips')
@@ -42,7 +49,7 @@ export async function trackVisitorIP() {
                     visited_at: new Date().toISOString(),
                     visit_count: existingEntry.visit_count + 1
                 })
-                .eq('ip_address', ipAddress);
+                .eq('id', existingEntry.id);
 
             if (updateError) {
                 console.error('Erreur lors de la mise à jour de l\'IP:', updateError);
